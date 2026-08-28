@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LABY-4K 기기 녹화 설정</title>
+<style>
+
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px;color:#1a1a1a;}
+.wrap{border:1px solid #ddd;border-radius:12px;overflow:hidden;background:#fff;max-width:1280px;margin:0 auto;}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #eee;}
+.layout{display:flex;}
+.gnb{width:170px;flex-shrink:0;border-right:1px solid #eee;padding:10px 7px;display:flex;flex-direction:column;gap:2px;}
+.gi{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;font-size:12px;color:#666;}
+.gi.on{background:#f0f0f0;color:#1a1a1a;font-weight:500;}
+.gi.on .gi-icon{color:#1a1a1a;}
+.gi:hover .gi-icon{color:#555;}
+.gd{height:1px;background:#eee;margin:5px 3px;}
+.main{flex:1;min-width:0;padding:14px 15px;}
+.ptitle{font-size:15px;font-weight:500;margin:0 0 12px;}
+.tabs{display:flex;border-bottom:1px solid #eee;margin-bottom:14px;}
+.tab{padding:7px 13px;font-size:13px;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;}
+.tab.on{color:#1a1a1a;font-weight:500;border-bottom-color:#1a1a1a;}
+.sec{border:1px solid #eee;border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.sec-hd{display:flex;align-items:center;gap:7px;padding:8px 13px;background:#f8f8f8;border-bottom:1px solid #eee;}
+.sec-title{font-size:12px;font-weight:500;color:#555;}
+.bdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#fff;color:#666;border:1px solid #ddd;}
+.wbdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#fff8e6;color:#b26a00;}
+.rtbdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;}
+.sec-body{padding:13px 14px;}
+.cl{font-size:11px;font-weight:500;color:#aaa;letter-spacing:0.3px;margin:0 0 8px;}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.don{background:#22c55e;} .doff{background:#d1d5db;}
+
+/* MixAudio 테이블 */
+.mix-tbl{width:100%;border-collapse:separate;border-spacing:0;}
+.mix-tbl thead th{font-size:11px;font-weight:500;color:#aaa;padding:3px 8px;border-bottom:1px solid #eee;text-align:left;white-space:nowrap;}
+.mix-tbl tbody td{padding:5px 8px;border-bottom:1px solid #f4f4f4;vertical-align:middle;}
+.mix-tbl tbody tr:last-child td{border-bottom:none;}
+.mix-tbl tbody tr:hover{background:#fafafa;}
+.src-name{font-size:12px;font-weight:500;color:#333;}
+.sep-row td{padding:4px 8px;font-size:10px;font-weight:500;color:#888;background:#f8f8f8;border-top:1px solid #eee;border-bottom:1px solid #eee;}
+
+/* ON/OFF 토글 */
+.toggle{position:relative;display:inline-block;width:34px;height:18px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.tslider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ddd;border-radius:18px;transition:.2s;}
+.tslider:before{position:absolute;content:"";height:14px;width:14px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s;}
+input:checked+.tslider{background:#1d4ed8;}
+input:checked+.tslider:before{transform:translateX(16px);}
+
+/* 레벨 바 */
+.lv-wrap{display:flex;align-items:center;gap:6px;}
+.lv-track{flex:1;height:8px;background:#eee;border-radius:3px;overflow:hidden;min-width:80px;}
+.lv-fill{height:100%;border-radius:3px;transition:width 0.1s ease;}
+.lv-val{font-size:11px;width:36px;text-align:right;font-variant-numeric:tabular-nums;color:#555;flex-shrink:0;}
+
+/* 슬라이더 — 가늘게 */
+.sl-wrap{display:flex;align-items:center;gap:5px;}
+.sl-val{font-size:11px;width:22px;text-align:right;font-variant-numeric:tabular-nums;color:#555;}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  flex:1;height:2px;border-radius:2px;
+  background:#ddd;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:12px;height:12px;border-radius:50%;
+  background:#555;cursor:pointer;border:none;
+}
+input[type=range]::-moz-range-thumb{
+  width:12px;height:12px;border-radius:50%;
+  background:#555;cursor:pointer;border:none;
+}
+input[type=range]:hover::-webkit-slider-thumb{background:#1a1a1a;}
+.no-gain{font-size:11px;color:#ccc;text-align:center;display:block;}
+
+/* 무신호 화면 */
+.loss-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.loss-card{border:1px solid #eee;border-radius:8px;padding:12px;cursor:pointer;}
+.loss-card.sel{border-color:#555;background:#fafafa;}
+.loss-preview{aspect-ratio:16/9;max-height:80px;background:#111;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-top:8px;overflow:hidden;}
+.loss-settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.loss-setting-card{border:1px solid #eee;border-radius:8px;padding:12px;}
+.loss-setting-card.disabled{opacity:0.35;pointer-events:none;}
+.form-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.form-row:last-child{margin-bottom:0;}
+.form-label{width:52px;flex-shrink:0;font-size:12px;color:#666;}
+input[type=text]{flex:1;padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;}
+input[type=color]{width:32px;height:26px;border:1px solid #ddd;border-radius:4px;padding:1px;cursor:pointer;}
+.gain-title{font-size:12px;font-weight:500;color:#555;margin-bottom:10px;}
+
+/* 아이콘 크기 통일 */
+.gi-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;flex-shrink:0;color:#888;}
+.sec-icon{display:inline-block;width:16px;text-align:center;font-size:13px;flex-shrink:0;line-height:1;}
+
+
+/* 테스트 녹화 모달 */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:#fff;border-radius:14px;width:400px;max-width:95vw;box-shadow:0 24px 80px rgba(0,0,0,0.2);overflow:hidden;}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #eee;background:#fafafa;}
+.modal-title{font-size:14px;font-weight:500;}
+.modal-close{font-size:18px;cursor:pointer;color:#aaa;background:none;border:none;padding:0 4px;line-height:1;}
+.modal-body{padding:18px;display:flex;flex-direction:column;gap:16px;}
+.modal-section{display:flex;flex-direction:column;gap:8px;}
+.modal-label{font-size:11px;font-weight:600;color:#aaa;letter-spacing:0.4px;text-transform:uppercase;}
+/* 채널 선택 */
+.ch-check-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.ch-check{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.ch-check input{display:none;}
+.ch-check-box{width:48px;height:40px;border:1.5px solid #ddd;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#888;background:#fff;transition:all 0.15s;}
+.ch-check input:checked ~ .ch-check-box{border-color:#1e293b;background:#1e293b;color:#fff;}
+.ch-check-info{font-size:10px;color:#aaa;text-align:center;}
+/* 녹화 시간 */
+.time-btns{display:flex;gap:6px;}
+.time-btn{flex:1;padding:6px 0;font-size:12px;border:1.5px solid #ddd;border-radius:7px;background:#fff;color:#666;cursor:pointer;text-align:center;}
+.time-btn.on{border-color:#1e293b;background:#1e293b;color:#fff;font-weight:500;}
+/* 저장경로 */
+.path-display{font-size:12px;font-family:monospace;color:#555;background:#f5f5f5;padding:7px 10px;border-radius:6px;border:1px solid #eee;}
+/* 모달 푸터 */
+.modal-ft{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid #eee;background:#fafafa;}
+.modal-cancel{padding:7px 16px;font-size:13px;border:1px solid #ddd;border-radius:7px;background:#fff;cursor:pointer;color:#555;}
+.modal-start{padding:7px 20px;font-size:13px;font-weight:500;border:none;border-radius:7px;background:#1e293b;color:#fff;cursor:pointer;}
+.modal-start:hover{background:#0f172a;}bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;display:none;z-index:999;white-space:nowrap;}
+
+/* 아이콘 크기 통일 */
+.gi-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;flex-shrink:0;color:#888;}
+.sec-icon{display:inline-block;width:16px;text-align:center;font-size:13px;flex-shrink:0;line-height:1;}
+
+
+
+
+/* 녹화 상태 바 */
+.rec-bar{display:flex;align-items:center;gap:10px;padding:7px 16px;background:#1a1a1a;border-bottom:1px solid #333;}
+.rec-idle-lbl{font-size:12px;color:#888;}
+.rec-sp{flex:1;}
+.btn-rec-test{padding:4px 14px;font-size:12px;font-weight:500;border:1px solid #22c55e;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;cursor:pointer;}
+.rec-dot-r{width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0;animation:recblink 1.2s infinite;}
+@keyframes recblink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.rec-lbl{font-size:12px;font-weight:600;color:#ef4444;}
+.rec-div{width:1px;height:14px;background:#444;flex-shrink:0;}
+.rec-chs{font-size:12px;color:#fff;font-weight:500;}
+.rec-tlbl{font-size:11px;color:#888;}
+.rec-tval{font-size:12px;color:#d1d5db;font-variant-numeric:tabular-nums;font-family:monospace;}
+.rec-elapsed{font-size:13px;color:#fff;font-variant-numeric:tabular-nums;font-family:monospace;font-weight:500;}
+.rec-stop{padding:4px 14px;font-size:12px;font-weight:500;border:1px solid #ef4444;border-radius:6px;background:rgba(239,68,68,0.15);color:#ef4444;cursor:pointer;}
+/* 출력 구성 */
+.output-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;}
+.output-card{border:1px solid #eee;border-radius:8px;padding:12px 14px;}
+.output-card-title{font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.output-icon{font-size:14px;}
+.output-sel{width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;cursor:pointer;}
+.output-cur{font-size:10px;color:#aaa;margin-top:5px;}
+.output-refresh-btn{font-size:11px;padding:3px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;cursor:pointer;}
+.output-refresh-btn:hover{background:#f5f5f5;}
+.output-status-row{display:flex;align-items:center;gap:5px;margin-top:5px;}
+.output-applied-dot{width:7px;height:7px;border-radius:50%;background:#d1d5db;flex-shrink:0;}
+.output-applied-dot.synced{background:#22c55e;}
+.output-applied-dot.diff{background:#f59e0b;}
+.btn-primary{display:inline-block;padding:5px 18px;font-size:12px;font-weight:500;
+  border:none;border-radius:6px;background:#1d4ed8;color:#fff;cursor:pointer;}
+.btn-primary:hover{background:#1e40af;}
+/* ── 녹화 상태 ── */
+.rec-status-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.rsc{border:1.5px solid #eee;border-radius:8px;padding:10px 12px;position:relative;}
+.rsc.active{border-color:#ef4444;background:#fff5f5;}
+.rsc.paused{border-color:#f59e0b;background:#fffbeb;}
+.rsc-ch{font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px;}
+.rsc-status{font-size:11px;font-weight:600;margin-bottom:6px;}
+.rsc-status.rec{color:#ef4444;}
+.rsc-status.pause{color:#f59e0b;}
+.rsc-status.idle{color:#cbd5e1;}
+.rsc-elapsed{font-size:18px;font-weight:700;color:#1e293b;letter-spacing:0.5px;margin-bottom:6px;font-family:monospace;}
+.rsc-file{font-size:9px;color:#94a3b8;font-family:monospace;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rsc-split{font-size:10px;color:#64748b;background:#f1f5f9;border-radius:4px;padding:2px 6px;display:inline-block;margin-top:2px;}
+.rsc-rec-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;position:absolute;top:10px;right:10px;animation:blink 1s infinite;}
+.rsc-pause-dot{width:8px;height:8px;border-radius:50%;background:#f59e0b;position:absolute;top:10px;right:10px;}
+/* 요약 바 */
+.rec-summary{display:flex;gap:16px;flex-wrap:wrap;align-items:center;padding:10px 14px;background:#f8fafc;border-radius:8px;margin-bottom:0;}
+.rec-summary-item{display:flex;flex-direction:column;gap:2px;}
+.rs-lbl{font-size:10px;color:#94a3b8;}
+.rs-val{font-size:12px;font-weight:600;color:#1e293b;}
+.rs-val.warn{color:#f59e0b;}
+.rs-val.danger{color:#ef4444;}
+/* 옵션 설정 */
+.cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.cfg-card{border:1px solid #eee;border-radius:8px;padding:14px 16px;}
+.cfg-card-title{font-size:12px;font-weight:600;color:#374151;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.cfg-row{display:flex;flex-direction:column;gap:3px;margin-bottom:8px;}
+.cfg-lbl{font-size:10px;color:#aaa;}
+.cfg-inp{padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;width:100%;}
+.cfg-inp:disabled{background:#f8fafc;color:#aaa;}
+.cfg-row-h{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.cfg-hint{font-size:10px;color:#94a3b8;margin-top:2px;}
+/* 채널 스트림 매트릭스 */
+.ch-matrix{width:100%;border-collapse:collapse;font-size:11px;}
+.ch-matrix th{padding:5px 8px;text-align:center;color:#94a3b8;font-weight:500;border-bottom:1px solid #f1f5f9;}
+.ch-matrix td{padding:5px 8px;text-align:center;border-bottom:1px solid #f8fafc;}
+.ch-matrix td:first-child{text-align:left;font-weight:600;color:#374151;}
+/* 자동 정지 */
+.stop-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.stop-card{border:1px solid #eee;border-radius:8px;padding:14px 16px;}
+.stop-card-title{font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;}
+.stop-card-desc{font-size:11px;color:#aaa;margin-bottom:10px;line-height:1.5;}
+.stop-toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.stop-inp-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.stop-inp{padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;width:90px;}
+.stop-unit{font-size:11px;color:#64748b;}
+.stop-hint{font-size:10px;color:#94a3b8;}
+.stop-warn{background:#fef9c3;border:1px solid #fde68a;border-radius:6px;padding:5px 9px;font-size:11px;color:#92400e;margin-top:6px;display:none;}
+.stop-warn.show{display:block;}
+
+.pat-token-bar{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;}
+.pat-token{font-size:10px;padding:2px 8px;border:1px solid #c4b5fd;border-radius:4px;background:#f5f3ff;color:#6d28d9;cursor:pointer;font-family:monospace;user-select:none;}
+.pat-token:hover{background:#ede9fe;border-color:#7c3aed;}
+.pat-preview{font-size:11px;color:#64748b;background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:4px 8px;margin-top:4px;font-family:monospace;}
+.pat-preview .ph{color:#94a3b8;}
+.pat-preview .pv{color:#1d4ed8;font-weight:500;}
+.cfg-fixed{padding:5px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;color:#64748b;display:inline-block;}
+
+.pat-token-bar{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;}
+.pat-token{font-size:10px;padding:2px 8px;border:1px solid #c4b5fd;border-radius:4px;background:#f5f3ff;color:#6d28d9;cursor:pointer;font-family:monospace;user-select:none;}
+.pat-token:hover{background:#ede9fe;border-color:#7c3aed;}
+.pat-preview{font-size:11px;color:#64748b;background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:4px 8px;margin-top:4px;font-family:monospace;}
+.cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.cfg-card{border:1px solid #eee;border-radius:8px;padding:14px 16px;}
+.cfg-card-title{font-size:12px;font-weight:600;color:#374151;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.cfg-row{display:flex;flex-direction:column;gap:3px;margin-bottom:8px;}
+.cfg-lbl{font-size:10px;color:#aaa;}
+.cfg-inp{padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;width:100%;}
+.cfg-row-h{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.cfg-hint{font-size:10px;color:#94a3b8;margin-top:2px;}
+.ch-matrix{width:100%;border-collapse:collapse;font-size:11px;}
+.ch-matrix th{padding:5px 8px;text-align:center;color:#94a3b8;font-weight:500;border-bottom:1px solid #f1f5f9;}
+.ch-matrix td{padding:5px 8px;text-align:center;border-bottom:1px solid #f8fafc;}
+.ch-matrix td:first-child{text-align:left;font-weight:600;color:#374151;}
+.stop-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.stop-card{border:1px solid #eee;border-radius:8px;padding:14px 16px;}
+.stop-card-title{font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;}
+.stop-card-desc{font-size:11px;color:#aaa;margin-bottom:10px;line-height:1.5;}
+.stop-toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.stop-inp-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.stop-inp{padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;width:90px;}
+.stop-unit{font-size:11px;color:#64748b;}
+.stop-hint{font-size:10px;color:#94a3b8;}
+.stop-warn{background:#fef9c3;border:1px solid #fde68a;border-radius:6px;padding:5px 9px;font-size:11px;color:#92400e;margin-top:6px;display:none;}
+.stop-warn.show{display:block;}
+
+.toggle-sm{position:relative;display:inline-block;width:28px;height:15px;flex-shrink:0;}
+.tsl-sm{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ddd;border-radius:15px;transition:.2s;}
+.stream-cell{display:flex;align-items:center;gap:8px;justify-content:center;}
+.status-tbl{width:100%;border-collapse:separate;border-spacing:0;}
+.stream-hd{width:220px;}
+.ch-col{text-align:left;width:64px;}
+.derr{background:#ef4444;}
+.ch-label{font-size:12px;font-weight:500;color:#333;}
+.bps-val{font-size:11px;font-variant-numeric:tabular-nums;min-width:62px;}
+.bps-on{color:#22c55e;font-weight:500;}
+.bps-off{color:#d1d5db;}
+.bps-err{color:#ef4444;font-weight:500;}
+.toggle-sm input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-sm input:checked + .tsl-sm{background:#22c55e;}
+.tsl-sm:before{content:"";position:absolute;height:11px;width:11px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s;}
+.toggle-sm input:checked + .tsl-sm:before{transform:translateX(13px);}
+/* 업로드 서버 설정 */
+.ups-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.ups-row{display:flex;flex-direction:column;gap:3px;margin-bottom:8px;}
+.ups-lbl{font-size:10px;color:#aaa;}
+.ups-inp{padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;width:100%;}
+.ups-inp:disabled{background:#f8fafc;color:#aaa;}
+.ups-toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.ups-hint{font-size:10px;color:#94a3b8;margin-top:2px;}
+.ups-test-result{font-size:11px;margin-left:8px;}
+.ups-test-ok{color:#16a34a;}
+.ups-test-fail{color:#dc2626;}
+/* 업로드 서버 카드 */
+.fm-btn{padding:5px 14px;font-size:12px;font-weight:500;border:1px solid transparent;border-radius:6px;cursor:pointer;}
+.fm-btn-primary{background:#1d4ed8;color:#fff;}
+.fm-btn-primary:hover{background:#1e40af;}
+.fm-btn-gray{background:#f1f5f9;color:#374151;border-color:#ddd;}
+.fm-btn-gray:hover{background:#e2e8f0;}
+.fm-btn-red{background:#fff;border-color:#ef4444;color:#ef4444;}
+.fm-btn-red:hover{background:#fee2e2;}
+.fm-btn-green{background:#fff;border-color:#22c55e;color:#15803d;}
+.fm-inp{padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;width:100%;}
+.up-cards{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.up-card{flex:1;min-width:150px;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px 12px;cursor:pointer;background:#fff;transition:border-color 0.12s;}
+.up-card:hover{border-color:#93c5fd;}
+.up-card.sel{border-color:#3b82f6;background:#eff6ff;}
+.up-type-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;display:inline-block;margin-bottom:5px;}
+.type-ftp{background:#dbeafe;color:#1d4ed8;}
+.type-sftp{background:#ede9fe;color:#6d28d9;}
+.type-panotop{background:#fef3c7;color:#92400e;}
+.up-card-meta{font-size:11px;color:#64748b;margin-top:2px;}
+.up-card-updated{font-size:10px;color:#cbd5e1;margin-top:3px;}
+.up-detail{display:none;border:1px solid #dbeafe;border-radius:8px;padding:14px 16px;background:#f8fafc;}
+.up-detail.show{display:block;}
+.up-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.test-result{font-size:11px;padding:3px 8px;border-radius:5px;display:none;align-items:center;gap:5px;margin-left:6px;}
+.test-result.show{display:inline-flex;}
+.test-result.ok{background:#dcfce7;color:#15803d;}
+.test-result.fail{background:#fee2e2;color:#b91c1c;}
+.test-result.loading{background:#f1f5f9;color:#64748b;}
+.up-card-btns{display:flex;gap:4px;margin-top:8px;}
+.up-card-btn{flex:1;padding:6px 0;font-size:12px;font-weight:500;border:1.5px solid #e2e8f0;border-radius:6px;background:#fff;color:#374151;cursor:pointer;text-align:center;}
+.up-card-btn:hover{background:#f1f5f9;border-color:#cbd5e1;}
+.up-card-btn.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;font-weight:600;}</style>
+</head>
+<body>
+<div style="background:#1e293b;color:#94a3b8;font-size:10px;text-align:right;padding:3px 14px;letter-spacing:0.5px;">
+  화면설계서 <strong style="color:#e2e8f0;">ver 14</strong> &nbsp;·&nbsp; LABY-4K LabyConfig4K &nbsp;·&nbsp; 2026-08-06
+</div>
+<!-- 테스트 녹화 모달 -->
+<div class="modal-overlay" id="recModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title">테스트 녹화 시작</span>
+      <button class="modal-close" onclick="closeRecModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- 채널 선택 (main) -->
+      <div class="modal-section">
+        <span class="modal-label">녹화 채널 (main)</span>
+        <div class="ch-check-grid">
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch1" checked onchange="updateRecPreview()">
+            <div class="ch-check-box">CH1</div>
+            <span class="ch-check-info">FHD</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch2" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH2</div>
+            <span class="ch-check-info">FHD</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch3" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH3</div>
+            <span class="ch-check-info">idle</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch4" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH4</div>
+            <span class="ch-check-info">idle</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-host" onchange="updateRecPreview()">
+            <div class="ch-check-box">Scene</div>
+            <span class="ch-check-info">Mix</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- sub 포함 여부 -->
+      <div class="modal-section">
+        <span class="modal-label">sub 스트림</span>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:#555;">
+          <input type="checkbox" id="rc-sub" onchange="updateRecPreview()"
+            style="width:15px;height:15px;accent-color:#475569;cursor:pointer;">
+          선택된 채널의 sub 함께 녹화
+          <span style="font-size:11px;color:#aaa;">(UHD 백업용)</span>
+        </label>
+      </div>
+
+      <!-- 시간 제한 -->
+      <div class="modal-section">
+        <span class="modal-label">시간 제한</span>
+        <div class="time-btns">
+          <div class="time-btn" onclick="selectTime(this,30)">30초</div>
+          <div class="time-btn on" onclick="selectTime(this,60)">60초</div>
+          <div class="time-btn" onclick="selectTime(this,120)">2분</div>
+          <div class="time-btn" onclick="selectTime(this,0)">제한 없음</div>
+        </div>
+      </div>
+
+      <!-- 예상 저장 경로 -->
+      <div class="modal-section">
+        <span class="modal-label">예상 저장 경로</span>
+        <div id="rec-paths" style="display:flex;flex-direction:column;gap:4px;"></div>
+        <div style="font-size:10px;color:#bbb;margin-top:4px;">경로 패턴은 설정프로그램에 정의된 규칙 적용</div>
+      </div>
+
+    </div>
+    <div class="modal-ft">
+      <button class="modal-cancel" onclick="closeRecModal()">취소</button>
+      <button class="modal-start" onclick="confirmStartRec()">▶ 녹화 시작</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div class="wrap">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:7px;font-size:14px;font-weight:500;">📹 LABY-4K 설정프로그램</div>
+    <div style="display:flex;align-items:center;gap:9px;">
+      <a href="laby4k_wizard_v1.html" style="font-size:12px;padding:4px 10px;border:1px solid #93c5fd;border-radius:6px;background:#eff6ff;color:#1d4ed8;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">⚡ 간편설정</a>
+      <button id="identify-btn" onclick="identifyDevice()" style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;font-weight:500;cursor:pointer;">🔦 녹화기 확인</button>
+      <span style="font-size:12px;color:#888;background:#f5f5f5;padding:3px 9px;border-radius:6px;">● IDLE</span>
+      <button style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;">로그아웃</button>
+    </div>
+  </div>
+  <div class="rec-bar" id="rec-bar">
+    <!-- 대기 상태 -->
+    <div id="rec-idle" style="display:flex;align-items:center;gap:10px;width:100%;">
+      <span class="rec-idle-lbl">● 녹화 대기 중</span>
+      <span class="rec-sp"></span>
+      <button class="btn-rec-test" onclick="openRecModal()">▶ 테스트 녹화 시작</button>
+    </div>
+    <!-- 녹화 중 상태 -->
+    <div id="rec-active" style="display:none;align-items:center;gap:10px;width:100%;">
+      <span class="rec-dot-r"></span>
+      <span class="rec-lbl">REC</span>
+      <span class="rec-div"></span>
+      <span class="rec-chs" id="rec-channels">CH1</span>
+      <span class="rec-div"></span>
+      <span class="rec-tlbl">시작</span>
+      <span class="rec-tval" id="rec-start-time">—</span>
+      <span class="rec-div"></span>
+      <span class="rec-elapsed" id="rec-elapsed">00:00:00</span>
+      <span class="rec-sp"></span>
+      <button class="rec-stop" onclick="stopRecording()">■ 녹화 정지</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="gnb">
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="8" width="3.5" height="6.5" rx="0.5"/><rect x="6.2" y="4" width="3.5" height="10.5" rx="0.5"/><rect x="11.5" y="1" width="3.5" height="13.5" rx="0.5"/></svg></span>시스템 상태</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="12" height="8" rx="1.5"/><line x1="5" y1="4" x2="5" y2="2"/><line x1="11" y1="4" x2="11" y2="2"/><line x1="8" y1="12" x2="8" y2="14"/><line x1="5" y1="8" x2="11" y2="8"/></svg></span>입출력 설정</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="3" width="14" height="10" rx="1"/><line x1="1" y1="6.5" x2="15" y2="6.5"/><line x1="4" y1="3" x2="4" y2="6.5"/><line x1="8" y1="3" x2="8" y2="6.5"/><line x1="12" y1="3" x2="12" y2="6.5"/><line x1="4" y1="9.5" x2="4" y2="13"/><line x1="8" y1="9.5" x2="8" y2="13"/><line x1="12" y1="9.5" x2="12" y2="13"/></svg></span>씬</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="4" x2="15" y2="4"/><line x1="1" y1="8" x2="15" y2="8"/><line x1="1" y1="12" x2="15" y2="12"/><circle cx="5" cy="4" r="2" fill="white" stroke="currentColor"/><circle cx="11" cy="8" r="2" fill="white" stroke="currentColor"/><circle cx="7" cy="12" r="2" fill="white" stroke="currentColor"/></svg></span>인코딩 및 프로파일</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 5.5 C4 2.5 12 2.5 15 5.5"/><path d="M3.5 8.2 C5.5 6.2 10.5 6.2 12.5 8.2"/><path d="M6 10.5 C7 9.5 9 9.5 10 10.5"/><circle cx="8" cy="13" r="1.2" fill="currentColor" stroke="none"/></svg></span>스트리밍</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg></span>녹화 및 저장</div>
+      <div class="gi" onclick="showPage&&showPage('upload')" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></span>업로드</div>
+      <div class="gi on"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="12" cy="10" r="3"/></svg></span>기기 녹화 설정</div>
+      <div class="gd"></div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>파일 관리</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.5"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/><line x1="2.9" y1="2.9" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="13.1" y2="13.1"/><line x1="2.9" y1="13.1" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="13.1" y2="2.9"/></svg></span>시스템 및 네트워크</div>
+    </div>
+    <div class="main">
+      <div class="page-hd"><span class="page-title">기기 녹화 설정</span></div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <div class="sec">
+          <div class="sec-hd">
+            <span class="sec-title"><span class="sec-icon">🎛</span>전면부 버튼 · 리모콘 · 로그인 없이 녹화 기본 설정</span>
+            <span class="bdg">CONFIGS-001</span>
+            <span style="flex:1;"></span>
+            <button class="output-refresh-btn" onclick="loadConfigs()">↺ 불러오기</button>
+          </div>
+          <p style="font-size:11px;color:#aaa;margin-bottom:12px;">
+            리모콘·전면부 버튼으로 녹화 시작 시 이 설정이 자동으로 적용됩니다.<br>
+            어플리케이션에서 녹화 시작하는 경우에는 앱이 경로·파일명을 직접 생성하므로 이 설정을 사용하지 않습니다.
+          </p>
+
+          <div>
+            <!-- 기본 설정 -->
+            <div style="padding:0 14px 14px;">
+            <div class="cfg-card">
+              <div class="cfg-card-title" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">📂 녹화 경로 · 파일명 설정<span style="flex:1;"></span><span class="bdg" style="background:#fef3c7;color:#92400e;font-weight:400;">전면부 버튼 녹화</span><span class="bdg" style="background:#fef3c7;color:#92400e;font-weight:400;">리모콘 녹화</span><span class="bdg" style="background:#fef3c7;color:#92400e;font-weight:400;">로그인 없이 녹화</span></div>
+
+              <!-- 컨테이너 포맷 -->
+              
+
+              <!-- 폴더 경로 패턴 -->
+              <div style="margin-bottom:10px;">
+
+              <!-- 토큰 선택 바 -->
+              <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;align-items:center;">
+                <span style="font-size:10px;color:#aaa;white-space:nowrap;">토큰 클릭 → 포커스 위치에 삽입:</span>
+                <span class="pat-token" onclick="insertFocusedToken('{#date}')">{#date}</span>
+                <span class="pat-token" onclick="insertFocusedToken('{#time}')">{#time}</span>
+                <span class="pat-token" onclick="insertFocusedToken('{#channel_name}')">{#channel_name}</span>
+                <span class="pat-token" onclick="insertFocusedToken('{#stream}')">{#stream}</span>
+              </div>
+
+              <!-- 한 줄 경로 + 파일명 -->
+              <div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap;overflow-x:auto;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:6px 10px;">
+                <span style="font-size:11px;color:#64748b;font-weight:600;white-space:nowrap;">LOCAL_</span>
+                <input class="cfg-inp" id="cfg-rootname" value="SCALI" style="width:72px;padding:3px 6px;font-size:11px;border-color:#d1d5db;" oninput="updatePathPreview()">
+                <span style="font-size:11px;color:#94a3b8;">/</span>
+                <input class="cfg-inp" id="cfg-subpath" value="{#date}" style="width:120px;padding:3px 6px;font-size:11px;border-color:#d1d5db;" oninput="updatePathPreview()" placeholder="{#date}/">
+                <input class="cfg-inp" id="cfg-filefmt" value="{#time}_{#channel_name}_{#stream}" style="flex:1;min-width:120px;padding:3px 6px;font-size:11px;border-color:#d1d5db;" oninput="updateFilePreview()">
+                <span style="font-size:11px;color:#64748b;white-space:nowrap;font-weight:500;">.mp4</span>
+              </div>
+
+
+              <!-- 미리보기 -->
+              <div class="pat-preview" id="path-preview" style="margin-top:5px;"></div>
+
+            </div>
+<div class="cfg-row" style="margin-top:4px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                  <label class="toggle"><input type="checkbox" id="cfg-split-toggle" onchange="toggleSplit(this.checked)"><span class="tslider"></span></label>
+                  <span style="font-size:12px;color:#374151;">분할 녹화 사용</span><span style="font-size:10px;color:#aaa;margin-left:6px;">→ 파일명에 <code style="background:#f1f5f9;padding:1px 4px;border-radius:3px;font-size:10px;">_{#n:99999}</code> 자동 추가</span>
+                </div>
+                <div id="cfg-split-fields" style="opacity:0.4;pointer-events:none;">
+                  <div class="stop-inp-row">
+                    <input class="stop-inp" type="number" id="cfg-split-sec" value="1800" min="60">
+                    <span class="stop-unit">초 마다 분할</span>
+                  </div>
+                  <span class="cfg-hint">예) 1800 = 30분마다 분할</span>
+                </div>
+              </div>
+          </div>
+
+            <!-- 전체 녹화 버튼 설정 -->
+            <div class="cfg-card" style="margin-top:14px;">
+              <div class="cfg-card-title" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">📡 전체 녹화 버튼 설정<span style="flex:1;"></span><span class="bdg" style="background:#fef3c7;color:#92400e;font-weight:400;">전면부 버튼 녹화</span><span class="bdg" style="background:#fef3c7;color:#92400e;font-weight:400;">리모콘 녹화</span></div>
+              <p style="font-size:11px;color:#aaa;margin:0 0 10px;">
+                어떤 채널이 녹화될지는 누른 버튼(CH1~4 / ALL)으로 결정되며 여기서 설정하지 않습니다.<br>
+                여기서는 <b>main·sub 중 어떤 스트림을 녹화할지</b>만 모든 채널에 공통으로 설정합니다. (prev는 정책상 항상 제외)
+              </p>
+              <div id="btn-rec-stream-toggles" style="display:flex;gap:24px;"></div>
+            </div>
+
+            <!-- 통합 저장 버튼 -->
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid #f1f5f9;">
+              <button class="btn-primary" onclick="saveDeviceRecSettings()">저장</button>
+              
+            </div>
+
+          </div>
+        </div>
+
+
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function identifyDevice(){
+  var btn = document.getElementById('identify-btn');
+  if(!btn || btn.disabled) return;
+  btn.disabled = true;
+  showToast('POST ~/api/v1/system/identify · 장비 램프 점등');
+  var remain = 5;
+  btn.textContent = '🔦 램프 점등 중... ('+remain+'초)';
+  var timer = setInterval(function(){
+    remain -= 1;
+    if(remain <= 0){
+      clearInterval(timer);
+      btn.textContent = '🔦 녹화기 확인';
+      btn.disabled = false;
+      return;
+    }
+    btn.textContent = '🔦 램프 점등 중... ('+remain+'초)';
+  }, 1000);
+}
+
+var recStartTime = null;
+
+function showToast(msg){
+  var t=document.getElementById('toast');
+  if(!t) return;
+  t.textContent=msg; t.style.display='block';
+  clearTimeout(showToast._t);
+  showToast._t=setTimeout(function(){t.style.display='none';}
+,2500);
+}
+
+function openRecModal(){
+  updateRecPreview();
+  document.getElementById('recModal').classList.add('show');
+}
+
+function closeRecModal(){
+  document.getElementById('recModal').classList.remove('show');
+}
+
+function updateRecPreview(){
+  var chs=[];
+  ['ch1','ch2','ch3','ch4','host'].forEach(function(c){
+    if(document.getElementById('rc-'+c).checked) chs.push(c);
+  });
+  var withSub = document.getElementById('rc-sub').checked;
+  var d = new Date();
+  var ds = d.getFullYear().toString().slice(2)+
+    String(d.getMonth()+1).padStart(2,'0')+
+    String(d.getDate()).padStart(2,'0');
+  var ts = String(d.getHours()).padStart(2,'0')+
+           String(d.getMinutes()).padStart(2,'0')+
+           String(d.getSeconds()).padStart(2,'0');
+
+  var wrap = document.getElementById('rec-paths');
+  wrap.innerHTML = '';
+  if(!chs.length){
+    wrap.innerHTML='<div class="path-display" style="color:#ef4444;">채널을 선택해주세요</div>';
+    return;
+  }
+  var chStr = chs.length===1 ? chs[0] : chs.join('·');
+  var suffix = withSub ? '_*.mp4' : '_main.mp4';
+  wrap.innerHTML = '<div class="path-display">~/data/test/'+ds+'_'+ts+'_'+chStr+suffix+'</div>';
+  if(chs.length>1){
+    wrap.innerHTML += '<div style="font-size:10px;color:#aaa;margin-top:4px;">선택 채널 각각 생성됨</div>';
+  }
+}
+
+function confirmStartRec(){
+  var chs=[];
+  ['ch1','ch2','ch3','ch4','host'].forEach(function(c){
+    if(document.getElementById('rc-'+c).checked) chs.push(c.toUpperCase());
+  });
+  if(!chs.length){ showToast('채널을 선택해주세요'); return; }
+  var withSub = document.getElementById('rc-sub').checked;
+  var label = chs.join(' · ') + (withSub ? '  (+sub)' : '');
+  closeRecModal();
+  startRecording(label);
+  if(recTimeSec>0){
+    clearTimeout(recTimerIv);
+    recTimerIv=setTimeout(function(){
+      stopRecording();
+      showToast('⏱ 시간 제한 도달 — 녹화 자동 정지');
+    }, recTimeSec*1000);
+  }
+}
+
+function startRecording(channels){
+  recStartTime = new Date();
+  var ri=document.getElementById('rec-idle');
+  var ra=document.getElementById('rec-active');
+  if(ri) ri.style.display='none';
+  if(ra) ra.style.display='flex';
+  var elCh=document.getElementById('rec-channels');
+  var elSt=document.getElementById('rec-start-time');
+  if(elCh) elCh.textContent = channels || 'CH1';
+  if(elSt) elSt.textContent = recStartTime.toTimeString().slice(0,8);
+  recElapsedIv = setInterval(function(){
+    var sec = Math.floor((Date.now()-recStartTime)/1000);
+    var h=String(Math.floor(sec/3600)).padStart(2,'0');
+    var m=String(Math.floor((sec%3600)/60)).padStart(2,'0');
+    var s=String(sec%60).padStart(2,'0');
+    var elEl=document.getElementById('rec-elapsed');
+    if(elEl) elEl.textContent = h+':'+m+':'+s;
+  },1000);
+  showToast('▶ 테스트 녹화 시작 · POST ~/recording/start');
+}
+
+function stopRecording(){
+  clearInterval(recElapsedIv);
+  recStartTime = null;
+  var ra=document.getElementById('rec-active');
+  var ri=document.getElementById('rec-idle');
+  if(ra) ra.style.display='none';
+  if(ri) ri.style.display='flex';
+  showToast('■ 녹화 정지 · POST ~/recording/stop');
+}
+
+var streamState = {
+  ch1:{ main:{on:true,state:'idle',bps:0}, sub:{on:true,state:'idle',bps:0}, prev:{on:true,state:'idle',bps:0} },
+  ch2:{ main:{on:true,state:'idle',bps:0}, sub:{on:true,state:'idle',bps:0}, prev:{on:true,state:'idle',bps:0} },
+  ch3:{ main:{on:true,state:'idle',bps:0}, sub:{on:true,state:'idle',bps:0}, prev:{on:false,state:'idle',bps:0} },
+  ch4:{ main:{on:true,state:'idle',bps:0}, sub:{on:true,state:'idle',bps:0}, prev:{on:false,state:'idle',bps:0} },
+  chhost:{ main:{on:true,state:'idle',bps:0}, sub:{on:true,state:'idle',bps:0}, prev:{on:true,state:'idle',bps:0} }
+};
+var mockConfigs = {
+  container_format:'mp4',
+  max_file_size:0,
+  max_storage_free:8192000,
+  max_duration_sec:0,
+  split:{enabled:false,duration_sec:1800},
+  path_root:'SCALI', path_sub:'{#date}/',
+  filename_format:'{#time}_{#channel_name}',
+  channels:{
+    ch1:{main:true,sub:false},
+    ch2:{main:true,sub:false},
+    ch3:{main:true,sub:false},
+    ch4:{main:true,sub:false},
+    chhost:{main:true,sub:false}
+  }
+};
+
+var CH_DISPLAY={ch1:'CH1',ch2:'CH2',ch3:'CH3',ch4:'CH4',chhost:'Scene'};
+
+var STREAM_LIST=['main','sub','prev'];
+
+var CH_COLOR={ch1:'#ef4444',ch2:'#3b82f6',ch3:'#22c55e',ch4:'#f59e0b',chhost:'#8b5cf6'};
+
+var CH_LABEL={ch1:'CH1',ch2:'CH2',ch3:'CH3',ch4:'CH4',chhost:'Scene'};
+
+var CH_LIST=['ch1','ch2','ch3','ch4','chhost'];
+
+var PAT_SAMPLE = {'{#date}':'260722','{#time}':'143000','{#channel_name}':'ch1','{#stream}':'sub','{#n:99999}':'00001'};
+
+function renderPatPreview(raw, suffix, elId){
+  var el = document.getElementById(elId); if(!el) return;
+  var rendered = raw;
+  Object.keys(PAT_SAMPLE).forEach(function(k){ rendered = rendered.split(k).join(PAT_SAMPLE[k]); });
+  el.textContent = '예) ' + rendered + (suffix||'');
+}
+
+function updatePathPreview(){
+  var root = (document.getElementById('cfg-rootname')||{value:'SCALI'}).value||'SCALI';
+  var sub  = (document.getElementById('cfg-subpath')||{value:''}).value||'';
+  var file = (document.getElementById('cfg-filefmt')||{value:''}).value||'';
+  var splitOn = document.getElementById('cfg-split-toggle')&&document.getElementById('cfg-split-toggle').checked;
+  var filePat = file + (splitOn ? '_{#n:99999}' : '') + '.mp4';
+  var subSlash = sub ? '/'+sub : '';
+  var full = '/LOCAL_'+root+subSlash+'/'+filePat;
+  renderPatPreview(full, '', 'path-preview');
+}
+function insertSubPathToken(t){ insertToken('cfg-subpath', t); updatePathPreview(); }
+
+function updateFilePreview(){
+  updatePathPreview();
+}
+
+function insertToken(inputId, token){
+  var el = document.getElementById(inputId); if(!el) return;
+  var s=el.selectionStart, e=el.selectionEnd;
+  el.value = el.value.slice(0,s) + token + el.value.slice(e);
+  el.selectionStart = el.selectionEnd = s + token.length;
+  el.focus();
+}
+
+function toggleSplit(on){
+  var f=document.getElementById('cfg-split-fields');
+  if(f){f.style.opacity=on?'1':'0.4';f.style.pointerEvents=on?'auto':'none';}
+  updateFilePreview();
+}
+
+function toggleMaxDur(on){
+  var lbl=document.getElementById('maxdur-lbl');
+  if(lbl) lbl.textContent=on?'사용 중':'무제한';
+  var f=document.getElementById('maxdur-fields');
+  if(f){f.style.opacity=on?'1':'0.4';f.style.pointerEvents=on?'auto':'none';}
+}
+
+function updateMaxDurSec(){
+  var hEl=document.getElementById('maxdur-h');
+  var mEl=document.getElementById('maxdur-m');
+  if(!hEl||!mEl) return;
+  var h=parseInt(hEl.value)||0;
+  var m=parseInt(mEl.value)||0;
+  var sec=h*3600+m*60;
+  var hint=document.getElementById('maxdur-sec-hint');
+  var warn=document.getElementById('maxdur-warn');
+  if(hint) hint.textContent='= '+sec.toLocaleString()+'초 (max_duration_sec)';
+  if(warn) warn.classList.toggle('show',sec>0&&sec<1800);
+}
+
+function loadConfigs(){
+  var c=mockConfigs;
+  var gi=function(id){return document.getElementById(id);};
+  if(gi('cfg-container')) gi('cfg-container').value=c.container_format||'mp4';
+  if(gi('cfg-rootname'))  gi('cfg-rootname').value='SCALI';
+    if(gi('cfg-subpath'))   gi('cfg-subpath').value='{#date}'; updatePathPreview();
+  if(gi('cfg-filefmt'))   gi('cfg-filefmt').value='{#time}_{#channel_name}_{#stream}'; updateFilePreview(); updatePathPreview();
+  var splitOn=c.split&&c.split.enabled;
+  if(gi('cfg-split-toggle')) gi('cfg-split-toggle').checked=splitOn;
+  toggleSplit(splitOn);
+  if(gi('cfg-split-sec')) gi('cfg-split-sec').value=(c.split&&c.split.duration_sec)||1800;
+  if(gi('minstorage-val')) gi('minstorage-val').value=c.max_storage_free||8192000;
+  if(gi('max-filesize'))   gi('max-filesize').value=c.max_file_size||0;
+  var durOn=c.max_duration_sec>0;
+  if(gi('maxdur-toggle')) gi('maxdur-toggle').checked=durOn;
+  toggleMaxDur(durOn);
+  if(durOn){
+    var h=Math.floor(c.max_duration_sec/3600);
+    var m=Math.floor((c.max_duration_sec%3600)/60);
+    if(gi('maxdur-h')) gi('maxdur-h').value=h;
+    if(gi('maxdur-m')) gi('maxdur-m').value=m;
+    updateMaxDurSec();
+  }
+  if(gi('storage-free-now')) gi('storage-free-now').textContent='1.7 TB';
+  renderBtnRecStreamToggles();
+  showToast('GET /api/laby/configs/recording/options · 설정 로드 완료');
+}
+
+function saveConfigs(){
+  var gi=function(id){return document.getElementById(id);};
+  var splitOn=gi('cfg-split-toggle')&&gi('cfg-split-toggle').checked;
+  var durOn=gi('maxdur-toggle')&&gi('maxdur-toggle').checked;
+  var h=parseInt(gi('maxdur-h').value)||0;
+  var m=parseInt(gi('maxdur-m').value)||0;
+  var body={
+    container_format:(gi('cfg-container')||{}).value||'mp4',
+    path_format:(gi('cfg-pathfmt')||{}).value||'',
+    filename_format:(gi('cfg-filefmt')||{}).value||'',
+    max_storage_free:parseInt(gi('minstorage-val').value)||8192000,
+    max_file_size:parseInt(gi('max-filesize').value)||0,
+    max_duration_sec:durOn?(h*3600+m*60):0,
+    split:{enabled:splitOn,duration_sec:parseInt(gi('cfg-split-sec').value)||1800},
+    channels:{}
+  };
+  CH_LIST.forEach(function(ch){
+    body.channels[ch]={};
+    STREAM_LIST.forEach(function(s){
+      var cb=document.querySelector('input[data-ch="'+ch+'"][data-stream="'+s+'"]');
+      body.channels[ch][s]=cb?cb.checked:false;
+    });
+  });
+  showToast('PATCH /api/laby/configs/recording/options · 저장 완료');
+}
+
+function streamCell(ch, stream, st) {
+  var checked = st.on ? 'checked' : '';
+  var state   = st.state || (st.on ? 'encoding' : 'idle');
+  var dotMap  = {encoding:'don', idle:'doff', error:'derr'};
+  var dotCls  = 'dot ' + (dotMap[state] || 'doff');
+  var bpsText = (state === 'encoding' && st.bps > 0) ? st.bps.toFixed(1)+' Mbps' : '—';
+  var bpsCls  = state === 'encoding' ? 'bps-val bps-on' : (state === 'error' ? 'bps-val bps-err' : 'bps-val bps-off');
+  return '<td><div class="stream-cell">' +
+    '<label class="toggle-sm"><input type="checkbox" '+checked+' onchange="toggleStream(\''+ch+'\',\''+stream+'\',this)"><span class="tsl-sm"></span></label>' +
+    '<span class="'+dotCls+'" id="sdot-'+ch+'-'+stream+'"></span>' +
+    '<span class="'+bpsCls+'" id="sbps-'+ch+'-'+stream+'">'+bpsText+'</span>' +
+    '</div></td>';
+}
+
+function toggleStream(ch, stream, checkbox){
+  if(mockConfigs.channels[ch]) mockConfigs.channels[ch][stream] = checkbox.checked;
+  showToast && showToast((CH_DISPLAY[ch]||ch)+' '+stream+' '+(checkbox.checked?'ON':'OFF'));
+}
+
+// 전체 녹화 버튼(하드웨어 버튼/IR) 공통 스트림 설정 - 채널 구분 없이 main/sub만
+var btnRecStreamCfg = { main:true, sub:false };
+
+function toggleBtnRecStream(stream, checkbox){
+  btnRecStreamCfg[stream] = checkbox.checked;
+  showToast && showToast('전체 녹화 버튼 · '+stream+' '+(checkbox.checked?'ON':'OFF'));
+}
+
+function renderBtnRecStreamToggles(){
+  var el = document.getElementById('btn-rec-stream-toggles'); if(!el) return;
+  el.innerHTML = ['main','sub'].map(function(s){
+    var chk = btnRecStreamCfg[s] ? 'checked' : '';
+    return '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;">'+
+      '<span style="font-size:12px;font-weight:600;color:#374151;width:36px;">'+s+'</span>'+
+      '<label class="toggle"><input type="checkbox" '+chk+' onchange="toggleBtnRecStream(\''+s+'\',this)"><span class="tslider"></span></label>'+
+    '</label>';
+  }).join('');
+}
+
+window.onload=function(){
+  ['cfg-rootname','cfg-subpath','cfg-filefmt'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) el.addEventListener('focus',function(){ lastFocusedPathInput=id; });
+  });
+  loadConfigs();
+  updatePathPreview();
+  updateFilePreview();
+};
+
+
+function saveDeviceRecSettings(){
+  var pathVal = (document.getElementById('cfg-pathfmt')||{}).value||'';
+  var fileVal = (document.getElementById('cfg-filefmt')||{}).value||'';
+  var splitOn = document.getElementById('cfg-split-toggle')&&document.getElementById('cfg-split-toggle').checked;
+  // 전체 녹화 버튼 공통 스트림 설정(main/sub)은 btnRecStreamCfg에 이미 반영되어 있음 (toggleBtnRecStream에서 갱신)
+  showToast && showToast('PATCH CONFIGS-001 · 경로/파일명/전체 녹화 버튼 설정 저장 완료');
+}
+
+function savePathSettings(){
+  var path=(document.getElementById('cfg-pathfmt')||{}).value||'';
+  var file=(document.getElementById('cfg-filefmt')||{}).value||'';
+  var splitOn=document.getElementById('cfg-split-toggle')&&document.getElementById('cfg-split-toggle').checked;
+  showToast && showToast('PATCH configs · 경로: '+path+' 파일: '+file+(splitOn?' (분할)':''));
+}
+
+
+/* ── 업로드 서버 설정 (전면부 버튼·리모콘용) ── */
+
+
+
+
+
+var TYPE_LABEL={ftp:'FTP',sftp:'SFTP',panotop:'Panotop'};
+var TYPE_CLS={ftp:'type-ftp',sftp:'type-sftp',panotop:'type-panotop'};
+
+/* ── 업로드 서버 (전면부 버튼·리모콘용) ── */
+var upsEnabled = false;
+var upsUploadConfigs = [
+  {type:'ftp',  host:'49.50.163.24',  port:'21',  path:'/upload/', passive:true, enc:'UTF-8', user:'laby4k', enabled:true,  updated:'2026-07-22'},
+  {type:'sftp', host:'192.168.1.200', port:'22',  path:'/data/',   passive:false,enc:'UTF-8', user:'admin',  enabled:false, updated:'2026-07-20'},
+  {type:'panotop', ptUrl:'https://api.panotop.com', ptKey:'', ptCh:'', ptOrg:'', enabled:false, updated:'2026-07-01'}
+];
+var selUpIdx2=-1, selMode2='';
+
+
+function renderUpsCards(){
+  var wrap = document.getElementById('ups-cards'); if(!wrap) return;
+  var h='';
+  upsUploadConfigs.forEach(function(c,i){
+    var meta='';
+    if(c.type==='ftp'||c.type==='sftp') meta=c.host+':'+c.port+' → '+c.path;
+    else if(c.type==='panotop') meta=c.ptUrl||'Panotop';
+    var cls=(TYPE_CLS&&TYPE_CLS[c.type])||'type-ftp';
+    var lbl=(TYPE_LABEL&&TYPE_LABEL[c.type])||c.type.toUpperCase();
+    var sel=(selUpIdx2===i);
+    h+='<div class="up-card'+(sel?' sel':'')+'" style="position:relative;">';
+    // 사용여부 체크박스 (우상단)
+    h+='<label class="toggle" style="position:absolute;top:8px;right:8px;" onclick="event.stopPropagation()">';
+    h+='<input type="checkbox"'+(c.enabled?' checked':'')+' onchange="toggleUpsCardEnable('+i+',this.checked)">';
+    h+='<span class="tslider"></span></label>';
+    h+='<span class="up-type-badge '+cls+'">'+lbl+'</span>';
+    h+='<div class="up-card-meta">'+meta+'</div>';
+    h+='<div class="up-card-btns">';
+    h+='<button class="up-card-btn'+(sel&&selMode2==='config'?' active':'')+'" onclick="openUpsPanel('+i+',0)">설정</button>';
+    h+='<button class="up-card-btn'+(sel&&selMode2==='history'?' active':'')+'" onclick="openUpsPanel('+i+',1)">전송 이력</button>';
+    h+='</div></div>';
+  });
+  wrap.innerHTML=h;
+}
+
+function toggleUpsCardEnable(idx, on){
+  if(upsUploadConfigs[idx]) upsUploadConfigs[idx].enabled = on;
+  renderUpsCards();
+  showToast && showToast((on?'활성화':'비활성화')+': '+upsUploadConfigs[idx].type.toUpperCase());
+}
+
+function openUpsPanel(idx, mode){
+  selUpIdx2=idx; selMode2=(mode===0?'config':'history');
+  renderUpsCards();
+  var c=upsUploadConfigs[idx];
+  var detail=document.getElementById('up-detail');
+  if(!detail) return;
+  detail.classList.add('show');
+  // 설정 패널 채우기
+  selectUpConfig(idx);
+}
+
+function insertPathToken(token){ insertToken('cfg-pathfmt', token); updatePathPreview && updatePathPreview(); }
+function insertFileToken(token){ insertToken('cfg-filefmt', token); updateFilePreview && updateFilePreview(); }
+
+window.addEventListener("load",function(){ renderUpsCards(); });
+
+/* ── 포커스 기반 토큰 삽입 ── */
+var lastFocusedPathInput = null;
+['cfg-rootname','cfg-subpath','cfg-filefmt'].forEach(function(id){
+  var el = document.getElementById(id);
+  if(el) el.addEventListener('focus', function(){ lastFocusedPathInput = id; });
+});
+
+function insertFocusedToken(token){
+  var targetId = lastFocusedPathInput || 'cfg-filefmt';
+  var el = document.getElementById(targetId); if(!el) return;
+  var s = el.selectionStart, e = el.selectionEnd;
+  var cur = el.value;
+  // 앞에 내용이 있고 마지막 문자가 / 나 _ 가 아니면 _ 추가
+  var prefix = (s > 0 && cur[s-1] !== '/' && cur[s-1] !== '_') ? '_' : '';
+  var insert = prefix + token;
+  el.value = cur.slice(0,s) + insert + cur.slice(e);
+  el.selectionStart = el.selectionEnd = s + insert.length;
+  el.focus();
+  updatePathPreview();
+}
+
+</script>
+</div>
+</body>
+</html>

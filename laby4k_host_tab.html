@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LABY-4K 입출력 설정 Scene</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px;color:#1a1a1a;}
+.wrap{border:1px solid #ddd;border-radius:12px;overflow:hidden;background:#fff;max-width:1280px;margin:0 auto;}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #eee;}
+.layout{display:flex;}
+.gnb{width:170px;flex-shrink:0;border-right:1px solid #eee;padding:10px 7px;display:flex;flex-direction:column;gap:2px;}
+.gi{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;font-size:12px;color:#666;}
+.gi.on{background:#f0f0f0;color:#1a1a1a;font-weight:500;}
+.gi.on .gi-icon{color:#1a1a1a;}
+.gi:hover .gi-icon{color:#555;}
+.gd{height:1px;background:#eee;margin:5px 3px;}
+.main{flex:1;min-width:0;padding:14px 15px;}
+.ptitle{font-size:15px;font-weight:500;margin:0 0 12px;}
+.tabs{display:flex;border-bottom:1px solid #eee;margin-bottom:14px;}
+.tab{padding:7px 13px;font-size:13px;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;}
+.tab.on{color:#1a1a1a;font-weight:500;border-bottom-color:#1a1a1a;}
+.sec{border:1px solid #eee;border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.sec-hd{display:flex;align-items:center;gap:7px;padding:8px 13px;background:#f8f8f8;border-bottom:1px solid #eee;}
+.sec-title{font-size:12px;font-weight:500;color:#555;}
+.bdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#fff;color:#666;border:1px solid #ddd;}
+.wbdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#fff8e6;color:#b26a00;}
+.rtbdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;}
+.ibdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;}
+.two-col{display:grid;grid-template-columns:1fr 1px 1fr;}
+.col{padding:11px 13px;}
+.vd{background:#eee;}
+.cl{font-size:11px;font-weight:500;color:#aaa;letter-spacing:0.3px;margin:0 0 7px;}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.don{background:#22c55e;} .doff{background:#d1d5db;}
+.prev-row{display:flex;align-items:center;gap:8px;padding:5px 8px;background:#f8f8f8;border-radius:7px;margin-bottom:4px;}
+.prev-label{font-size:11px;color:#555;white-space:nowrap;width:60px;}
+
+/* 씬 선택 */
+.scene-current{border:1px solid #eee;border-radius:8px;overflow:hidden;margin-bottom:0;}
+.scene-current-info{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f0f7ff;border-bottom:1px solid #dbeafe;}
+.scene-name{font-size:13px;font-weight:500;color:#1d4ed8;}
+.scene-size{font-size:11px;color:#6b7280;}
+.scene-thumb-row{display:flex;gap:6px;padding:8px 10px;align-items:center;}
+.scene-thumb{flex:1;aspect-ratio:16/9;background:#1a1a2e;border-radius:6px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.layer-block{position:absolute;border:1px solid rgba(255,255,255,0.3);border-radius:2px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;}
+.layer-label{font-size:8px;color:rgba(255,255,255,0.6);}
+.scene-meta{display:flex;flex-direction:column;gap:4px;min-width:100px;}
+.meta-row{font-size:11px;color:#555;display:flex;gap:5px;}
+.meta-key{color:#aaa;width:40px;flex-shrink:0;}
+
+.scene-sel-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.scene-sel-label{font-size:12px;font-weight:500;color:#555;white-space:nowrap;}
+select{padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;}
+.link-btn{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#1d4ed8;padding:3px 9px;border:1px solid #bfdbfe;border-radius:5px;background:#eff6ff;cursor:pointer;white-space:nowrap;}
+.apply-scene-btn{padding:5px 14px;font-size:12px;border:1px solid #1d4ed8;border-radius:6px;background:#1d4ed8;color:#fff;cursor:pointer;}
+.apply-scene-btn:hover{background:#1e40af;}
+
+/* 소스 구성 */
+.src-config{background:#f9f9f9;border:1px solid #eee;border-radius:8px;padding:9px 12px;margin-bottom:12px;}
+.src-config-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.src-config-title{font-size:11px;font-weight:500;color:#555;}
+.src-btns{display:flex;flex-wrap:wrap;gap:5px;}
+.src-btn{padding:3px 10px;font-size:11px;border:1px solid #ddd;border-radius:5px;background:#fff;color:#666;user-select:none;transition:all 0.15s;}
+.src-btn.on{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
+.src-btn.editable{cursor:pointer;}
+.src-btn.readonly{pointer-events:none;}
+.src-btn.nosig{opacity:0.4;}
+.readonly-note{font-size:10px;color:#bbb;margin-top:6px;}
+
+/* 소스 선택 */
+.src-sel-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.src-sel-label{font-size:12px;font-weight:500;color:#555;white-space:nowrap;}
+.src-sel{padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-weight:500;background:#fff;min-width:160px;}
+
+/* 오디오 테이블 */
+.audio-body{padding:12px 14px;}
+.audio-tbl{width:100%;border-collapse:separate;border-spacing:0;}
+.audio-tbl thead th{font-size:11px;font-weight:500;color:#aaa;padding:3px 8px;border-bottom:1px solid #eee;text-align:left;white-space:nowrap;}
+.audio-tbl tbody tr{transition:background 0.12s;}
+.audio-tbl tbody tr.sel-row{background:#f0f7ff;}
+.audio-tbl tbody tr.inactive{opacity:0.35;}
+.audio-tbl tbody td{padding:4px 8px;border-bottom:1px solid #f4f4f4;vertical-align:middle;}
+.audio-tbl tbody tr:last-child td{border-bottom:none;}
+.src-name{font-size:12px;font-weight:500;color:#333;}
+.sep-row td{padding:4px 8px;font-size:10px;font-weight:500;color:#888;background:#f8f8f8;border-top:1px solid #eee;border-bottom:1px solid #eee;}
+.lv-wrap{display:flex;align-items:center;gap:6px;}
+.lv-track{flex:1;height:8px;background:#eee;border-radius:3px;overflow:hidden;min-width:80px;}
+.lv-fill{height:100%;border-radius:3px;transition:width 0.1s ease;}
+.lv-val{font-size:11px;width:36px;text-align:right;font-variant-numeric:tabular-nums;color:#555;flex-shrink:0;}
+.sl-wrap{display:flex;align-items:center;gap:5px;}
+.sl-val{font-size:11px;width:22px;text-align:right;font-variant-numeric:tabular-nums;color:#555;}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  flex:1;height:2px;border-radius:2px;background:#ddd;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:12px;height:12px;border-radius:50%;background:#555;cursor:pointer;border:none;
+}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:#555;cursor:pointer;border:none;}
+input[type=range]:hover::-webkit-slider-thumb{background:#1a1a1a;}
+.no-gain{font-size:11px;color:#ccc;text-align:center;display:block;}
+
+/* 아이콘 크기 통일 */
+.gi-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;flex-shrink:0;color:#888;}
+.sec-icon{display:inline-block;width:16px;text-align:center;font-size:13px;flex-shrink:0;line-height:1;}
+
+
+/* 테스트 녹화 모달 */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:#fff;border-radius:14px;width:400px;max-width:95vw;box-shadow:0 24px 80px rgba(0,0,0,0.2);overflow:hidden;}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #eee;background:#fafafa;}
+.modal-title{font-size:14px;font-weight:500;}
+.modal-close{font-size:18px;cursor:pointer;color:#aaa;background:none;border:none;padding:0 4px;line-height:1;}
+.modal-body{padding:18px;display:flex;flex-direction:column;gap:16px;}
+.modal-section{display:flex;flex-direction:column;gap:8px;}
+.modal-label{font-size:11px;font-weight:600;color:#aaa;letter-spacing:0.4px;text-transform:uppercase;}
+/* 채널 선택 */
+.ch-check-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.ch-check{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.ch-check input{display:none;}
+.ch-check-box{width:48px;height:40px;border:1.5px solid #ddd;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#888;background:#fff;transition:all 0.15s;}
+.ch-check input:checked ~ .ch-check-box{border-color:#1e293b;background:#1e293b;color:#fff;}
+.ch-check-info{font-size:10px;color:#aaa;text-align:center;}
+/* 녹화 시간 */
+.time-btns{display:flex;gap:6px;}
+.time-btn{flex:1;padding:6px 0;font-size:12px;border:1.5px solid #ddd;border-radius:7px;background:#fff;color:#666;cursor:pointer;text-align:center;}
+.time-btn.on{border-color:#1e293b;background:#1e293b;color:#fff;font-weight:500;}
+/* 저장경로 */
+.path-display{font-size:12px;font-family:monospace;color:#555;background:#f5f5f5;padding:7px 10px;border-radius:6px;border:1px solid #eee;}
+/* 모달 푸터 */
+.modal-ft{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid #eee;background:#fafafa;}
+.modal-cancel{padding:7px 16px;font-size:13px;border:1px solid #ddd;border-radius:7px;background:#fff;cursor:pointer;color:#555;}
+.modal-start{padding:7px 20px;font-size:13px;font-weight:500;border:none;border-radius:7px;background:#1e293b;color:#fff;cursor:pointer;}
+.modal-start:hover{background:#0f172a;}bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;display:none;z-index:999;white-space:nowrap;}
+
+/* 아이콘 크기 통일 */
+.gi-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;flex-shrink:0;color:#888;}
+.sec-icon{display:inline-block;width:16px;text-align:center;font-size:13px;flex-shrink:0;line-height:1;}
+
+
+
+
+/* 녹화 상태 바 */
+.rec-bar{display:flex;align-items:center;gap:10px;padding:7px 16px;background:#1a1a1a;border-bottom:1px solid #333;}
+.rec-idle-lbl{font-size:12px;color:#888;}
+.rec-sp{flex:1;}
+.btn-rec-test{padding:4px 14px;font-size:12px;font-weight:500;border:1px solid #22c55e;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;cursor:pointer;}
+.rec-dot-r{width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0;animation:recblink 1.2s infinite;}
+@keyframes recblink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.rec-lbl{font-size:12px;font-weight:600;color:#ef4444;}
+.rec-div{width:1px;height:14px;background:#444;flex-shrink:0;}
+.rec-chs{font-size:12px;color:#fff;font-weight:500;}
+.rec-tlbl{font-size:11px;color:#888;}
+.rec-tval{font-size:12px;color:#d1d5db;font-variant-numeric:tabular-nums;font-family:monospace;}
+.rec-elapsed{font-size:13px;color:#fff;font-variant-numeric:tabular-nums;font-family:monospace;font-weight:500;}
+.rec-stop{padding:4px 14px;font-size:12px;font-weight:500;border:1px solid #ef4444;border-radius:6px;background:rgba(239,68,68,0.15);color:#ef4444;cursor:pointer;}</style>
+</head>
+<body>
+<div style="background:#1e293b;color:#94a3b8;font-size:10px;text-align:right;padding:3px 14px;letter-spacing:0.5px;">
+  화면설계서 <strong style="color:#e2e8f0;">ver 14</strong> &nbsp;·&nbsp; LABY-4K LabyConfig4K &nbsp;·&nbsp; 2026-08-06
+</div>
+<!-- 테스트 녹화 모달 -->
+<div class="modal-overlay" id="recModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title">테스트 녹화 시작</span>
+      <button class="modal-close" onclick="closeRecModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- 채널 선택 (main) -->
+      <div class="modal-section">
+        <span class="modal-label">녹화 채널 (main)</span>
+        <div class="ch-check-grid">
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch1" checked onchange="updateRecPreview()">
+            <div class="ch-check-box">CH1</div>
+            <span class="ch-check-info">FHD</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch2" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH2</div>
+            <span class="ch-check-info">FHD</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch3" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH3</div>
+            <span class="ch-check-info">idle</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch4" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH4</div>
+            <span class="ch-check-info">idle</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-host" onchange="updateRecPreview()">
+            <div class="ch-check-box">Scene</div>
+            <span class="ch-check-info">Mix</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- sub 포함 여부 -->
+      <div class="modal-section">
+        <span class="modal-label">sub 스트림</span>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:#555;">
+          <input type="checkbox" id="rc-sub" onchange="updateRecPreview()"
+            style="width:15px;height:15px;accent-color:#475569;cursor:pointer;">
+          선택된 채널의 sub 함께 녹화
+          <span style="font-size:11px;color:#aaa;">(UHD 백업용)</span>
+        </label>
+      </div>
+
+      <!-- 시간 제한 -->
+      <div class="modal-section">
+        <span class="modal-label">시간 제한</span>
+        <div class="time-btns">
+          <div class="time-btn" onclick="selectTime(this,30)">30초</div>
+          <div class="time-btn on" onclick="selectTime(this,60)">60초</div>
+          <div class="time-btn" onclick="selectTime(this,120)">2분</div>
+          <div class="time-btn" onclick="selectTime(this,0)">제한 없음</div>
+        </div>
+      </div>
+
+      <!-- 예상 저장 경로 -->
+      <div class="modal-section">
+        <span class="modal-label">예상 저장 경로</span>
+        <div id="rec-paths" style="display:flex;flex-direction:column;gap:4px;"></div>
+        <div style="font-size:10px;color:#bbb;margin-top:4px;">경로 패턴은 설정프로그램에 정의된 규칙 적용</div>
+      </div>
+
+    </div>
+    <div class="modal-ft">
+      <button class="modal-cancel" onclick="closeRecModal()">취소</button>
+      <button class="modal-start" onclick="confirmStartRec()">▶ 녹화 시작</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div class="wrap">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:7px;font-size:14px;font-weight:500;">📹 LABY-4K 설정프로그램</div>
+    <div style="display:flex;align-items:center;gap:9px;">
+      <a href="laby4k_wizard_v1.html" style="font-size:12px;padding:4px 10px;border:1px solid #93c5fd;border-radius:6px;background:#eff6ff;color:#1d4ed8;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">⚡ 간편설정</a>
+      <button id="identify-btn" onclick="identifyDevice()" style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;font-weight:500;cursor:pointer;">🔦 녹화기 확인</button>
+      <span style="font-size:12px;color:#888;background:#f5f5f5;padding:3px 9px;border-radius:6px;">● IDLE</span>
+      <button style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;">로그아웃</button>
+    </div>
+  </div>
+
+    <div class="rec-bar" id="rec-bar">
+    <!-- 대기 상태 -->
+    <div id="rec-idle" style="display:flex;align-items:center;gap:10px;width:100%;">
+      <span class="rec-idle-lbl">● 녹화 대기 중</span>
+      <span class="rec-sp"></span>
+      <button class="btn-rec-test" onclick="openRecModal()">▶ 테스트 녹화 시작</button>
+    </div>
+    <!-- 녹화 중 상태 -->
+    <div id="rec-active" style="display:none;align-items:center;gap:10px;width:100%;">
+      <span class="rec-dot-r"></span>
+      <span class="rec-lbl">REC</span>
+      <span class="rec-div"></span>
+      <span class="rec-chs" id="rec-channels">CH1</span>
+      <span class="rec-div"></span>
+      <span class="rec-tlbl">시작</span>
+      <span class="rec-tval" id="rec-start-time">—</span>
+      <span class="rec-div"></span>
+      <span class="rec-elapsed" id="rec-elapsed">00:00:00</span>
+      <span class="rec-sp"></span>
+      <button class="rec-stop" onclick="stopRecording()">■ 녹화 정지</button>
+    </div>
+  </div>
+
+  <div class="layout">
+                    <div class="gnb">
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="8" width="3.5" height="6.5" rx="0.5"/><rect x="6.2" y="4" width="3.5" height="10.5" rx="0.5"/><rect x="11.5" y="1" width="3.5" height="13.5" rx="0.5"/></svg></span>대시보드</div>
+      <div class="gi on"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="12" height="8" rx="1.5"/><line x1="5" y1="4" x2="5" y2="2"/><line x1="11" y1="4" x2="11" y2="2"/><line x1="8" y1="12" x2="8" y2="14"/><line x1="5" y1="8" x2="11" y2="8"/></svg></span>입출력 설정</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="3" width="14" height="10" rx="1"/><line x1="1" y1="6.5" x2="15" y2="6.5"/><line x1="4" y1="3" x2="4" y2="6.5"/><line x1="8" y1="3" x2="8" y2="6.5"/><line x1="12" y1="3" x2="12" y2="6.5"/><line x1="4" y1="9.5" x2="4" y2="13"/><line x1="8" y1="9.5" x2="8" y2="13"/><line x1="12" y1="9.5" x2="12" y2="13"/></svg></span>씬</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="4" x2="15" y2="4"/><line x1="1" y1="8" x2="15" y2="8"/><line x1="1" y1="12" x2="15" y2="12"/><circle cx="5" cy="4" r="2" fill="white" stroke="currentColor"/><circle cx="11" cy="8" r="2" fill="white" stroke="currentColor"/><circle cx="7" cy="12" r="2" fill="white" stroke="currentColor"/></svg></span>인코딩 및 프로파일</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 5.5 C4 2.5 12 2.5 15 5.5"/><path d="M3.5 8.2 C5.5 6.2 10.5 6.2 12.5 8.2"/><path d="M6 10.5 C7 9.5 9 9.5 10 10.5"/><circle cx="8" cy="13" r="1.2" fill="currentColor" stroke="none"/></svg></span>스트리밍</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg></span>녹화 및 저장</div>
+      <div class="gi" onclick="showPage&&showPage('upload')" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></span>업로드</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="12" cy="10" r="3"/></svg></span>기기 녹화 설정</div>
+      <div class="gd"></div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>파일 관리</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg></span>계정</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.5"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/><line x1="2.9" y1="2.9" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="13.1" y2="13.1"/><line x1="2.9" y1="13.1" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="13.1" y2="2.9"/></svg></span>시스템 및 네트워크</div>
+    </div>
+
+    <div class="main">
+      <p class="ptitle">입출력 설정</p>
+      <div class="tabs">
+        <div class="tab">CH1</div>
+        <div class="tab">CH2</div>
+        <div class="tab">CH3</div>
+        <div class="tab">CH4</div>
+        <div class="tab on">Scene</div>
+        <div class="tab">공통</div>
+      </div>
+
+      <!-- 미리보기 -->
+      <div class="sec">
+        <div class="sec-hd">
+          <span class="sec-title"><span class="sec-icon">📺</span>미리보기</span>
+          <span class="bdg">WebRTC prev · 비디오믹스 출력</span>
+        </div>
+        <div class="two-col">
+          <div class="col">
+            <div style="aspect-ratio:16/9;background:#1a1a2e;border-radius:8px;position:relative;overflow:hidden;">
+              <!-- 믹스 레이아웃 시각화 -->
+              <div style="position:absolute;inset:0;display:flex;">
+                <div style="flex:1;border-right:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;">
+                  <span style="font-size:10px;color:rgba(255,255,255,0.5);">CH1</span>
+                </div>
+                <div style="width:30%;display:flex;flex-direction:column;">
+                  <div style="flex:1;border-bottom:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;">
+                    <span style="font-size:9px;color:rgba(255,255,255,0.5);">CH2</span>
+                  </div>
+                  <div style="flex:1;display:flex;align-items:center;justify-content:center;">
+                    <span style="font-size:9px;color:rgba(255,255,255,0.5);">CH3</span>
+                  </div>
+                </div>
+              </div>
+              <div style="position:absolute;bottom:5px;right:6px;background:rgba(0,0,0,0.6);padding:2px 7px;border-radius:5px;">
+                <span style="font-size:10px;color:#bbb;">● LIVE · 강의실A_기본씬</span>
+              </div>
+            </div>
+          </div>
+          <div class="vd"></div>
+          <div class="col" style="display:flex;flex-direction:column;justify-content:center;">
+            <div class="cl">스트림 오디오 레벨 · encoder.prev.dB</div>
+            <div class="prev-row">
+              <span class="prev-label">prev L</span>
+              <div class="lv-track"><div class="lv-fill" id="pL" style="width:55%;background:#22c55e;"></div></div>
+              <span class="lv-val" id="pLv">-18dB</span>
+            </div>
+            <div class="prev-row">
+              <span class="prev-label">prev R</span>
+              <div class="lv-track"><div class="lv-fill" id="pR" style="width:52%;background:#22c55e;"></div></div>
+              <span class="lv-val" id="pRv">-20dB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 비디오믹스 씬 (Scene 전용) -->
+      <div class="sec">
+        <div class="sec-hd">
+          <span class="sec-title"><span class="sec-icon">🎬</span>비디오믹스 씬</span>
+        </div>
+
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:12px;">
+
+          <!-- 해상도 설정 -->
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:12px;font-weight:500;color:#555;white-space:nowrap;">출력 해상도</span>
+            <select style="padding:5px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;" onchange="showToast('해상도 변경: '+this.value)">
+              <option>3840 × 2160 (4K UHD)</option>
+              <option selected>1920 × 1080 (FHD)</option>
+              <option>1280 × 720 (HD)</option>
+            </select>
+            <span style="font-size:11px;color:#aaa;">씬과 무관하게 독립 설정</span>
+          </div>
+
+          <!-- 현재 적용 씬 카드 -->
+          <div style="border:1px solid #dbeafe;border-radius:10px;overflow:hidden;background:#f8fbff;">
+            <!-- 헤더 -->
+            <div style="display:flex;align-items:center;gap:8px;padding:9px 13px;background:#eff6ff;border-bottom:1px solid #dbeafe;">
+              <span style="font-size:13px;font-weight:500;color:#1d4ed8;">1·2·3 POP</span>
+              <span style="font-size:11px;color:#6b7280;">VMX_014</span>
+              <span class="bdg">3채널</span>
+              <span class="bdg">POP</span>
+            </div>
+            <!-- 썸네일 + 메타 -->
+            <div style="display:flex;gap:12px;padding:12px 14px;align-items:flex-start;">
+              <div style="width:200px;flex-shrink:0;">
+                <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;border-radius:6px;">
+                  <rect width="160" height="90" fill="#111" rx="3"/>
+                  <rect x="0" y="16.2" width="104" height="58.5" fill="#2563eb" opacity="0.85" rx="1"/>
+                  <text x="52" y="46" dominant-baseline="middle" text-anchor="middle" font-size="14" font-weight="bold" fill="rgba(255,255,255,0.9)">1</text>
+                  <rect x="104" y="12.6" width="56" height="31.5" fill="#16a34a" opacity="0.85" rx="1"/>
+                  <text x="132" y="28.4" dominant-baseline="middle" text-anchor="middle" font-size="11" font-weight="bold" fill="rgba(255,255,255,0.9)">2</text>
+                  <rect x="104" y="45.9" width="56" height="31.5" fill="#d97706" opacity="0.85" rx="1"/>
+                  <text x="132" y="61.7" dominant-baseline="middle" text-anchor="middle" font-size="11" font-weight="bold" fill="rgba(255,255,255,0.9)">3</text>
+                </svg>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+                <div class="meta-row"><span class="meta-key">배치</span><span>POP (1중심, 2·3 우측)</span></div>
+                <div class="meta-row"><span class="meta-key">채널</span><span>CH1 · CH2 · CH3</span></div>
+                <div class="meta-row"><span class="meta-key">레이어</span><span>배경 + 채널 3개</span></div>
+              </div>
+            </div>
+            <!-- 씬 변경 버튼 -->
+            <div style="display:flex;justify-content:flex-end;padding:10px 14px;border-top:1px solid #dbeafe;background:#f0f7ff;">
+              <button onclick="goToSceneMenu()" class="apply-scene-btn">🎬 씬 변경</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 오디오 (다른 채널과 동일 구조) -->
+      <div class="sec">
+        <div class="sec-hd">
+          <span class="sec-title"><span class="sec-icon">🔊</span>오디오</span>
+          <span class="rtbdg">실시간 반영</span>
+        </div>
+        <div class="audio-body">
+
+          <!-- Scene 입력 소스 선택 -->
+          <div class="src-sel-row">
+            <span class="src-sel-label">Scene 입력 소스</span>
+            <select class="src-sel" id="srcSel" onchange="onSrcChange(this.value)">
+              <option value="linein">LineIn</option>
+              <option value="xlrcombo">XLRCombo</option>
+              <option value="usbaudio">USBAudio</option>
+              <option value="mixaudio" selected>MixAudio</option>
+            </select>
+            <span style="font-size:11px;color:#aaa;">선택 즉시 Scene 인코딩 소스 변경</span>
+          </div>
+
+          <!-- 소스 구성 -->
+          <div class="src-config" id="srcConfig">
+            <div class="src-config-hd">
+              <span class="src-config-title" id="srcConfigTitle">MixAudio 구성</span>
+              <span id="srcConfigBadge" class="wbdg">전체 채널 적용 · 편집 가능</span>
+            </div>
+            <div class="src-btns" id="srcBtns">
+              <span class="src-btn editable on"    data-src="linein"   onclick="toggleSrc(this)">LineIn</span>
+              <span class="src-btn editable nosig" data-src="xlrcombo" onclick="toggleSrc(this)">XLRCombo</span>
+              <span class="src-btn editable nosig" data-src="usbaudio" onclick="toggleSrc(this)">USBAudio</span>
+              <span class="src-btn editable on"    data-src="ch1hdmi"  onclick="toggleSrc(this)">CH1HDMI</span>
+              <span class="src-btn editable nosig" data-src="ch1sdi"   onclick="toggleSrc(this)">CH1SDI</span>
+              <span class="src-btn editable on"    data-src="ch2hdmi"  onclick="toggleSrc(this)">CH2HDMI</span>
+              <span class="src-btn editable nosig" data-src="ch3hdmi"  onclick="toggleSrc(this)">CH3HDMI</span>
+              <span class="src-btn editable nosig" data-src="ch4hdmi"  onclick="toggleSrc(this)">CH4HDMI</span>
+            </div>
+            <div class="readonly-note" id="readonlyNote" style="display:none;">
+              단일 소스 선택 시 구성 변경 불가 — MixAudio 선택 시 편집 가능합니다
+            </div>
+          </div>
+
+          <!-- 디바이스 테이블 -->
+          <table class="audio-tbl">
+            <thead>
+              <tr>
+                <th style="width:108px;">소스</th>
+                <th style="width:26px;text-align:center;">신호</th>
+                <th>입력 레벨 &nbsp;<span style="font-weight:400;color:#bbb;font-size:10px;">-60 ————————— 0dB</span></th>
+                <th style="width:185px;">게인 (0–100)</th>
+                <th style="width:185px;">볼륨 (0–100)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="sep-row"><td colspan="5">채널 전용 &nbsp;<span class="bdg">각 채널별 적용</span></td></tr>
+              <tr id="tr-ch1hdmi">
+                <td><span class="src-name">CH1HDMI</span></td>
+                <td style="text-align:center;"><span class="dot don"></span></td>
+                <td><div class="lv-wrap"><div class="lv-track"><div class="lv-fill" id="lv-ch1hdmi" style="width:60%;background:#22c55e;"></div></div><span class="lv-val" id="db-ch1hdmi">-16dB</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">80</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="90" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">90</span></div></td>
+              </tr>
+              <tr id="tr-ch1sdi" class="inactive">
+                <td><span class="src-name">CH1SDI</span></td>
+                <td style="text-align:center;"><span class="dot doff"></span></td>
+                <td><div class="lv-wrap"><div class="lv-track"><div class="lv-fill" style="width:0%;"></div></div><span class="lv-val">—</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="75" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">75</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="85" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">85</span></div></td>
+              </tr>
+              <tr id="tr-ch2hdmi">
+                <td><span class="src-name">CH2HDMI</span></td>
+                <td style="text-align:center;"><span class="dot don"></span></td>
+                <td><div class="lv-wrap"><div class="lv-track"><div class="lv-fill" id="lv-ch2hdmi" style="width:48%;background:#22c55e;"></div></div><span class="lv-val" id="db-ch2hdmi">-22dB</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">80</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">80</span></div></td>
+              </tr>
+              <tr id="tr-ch3hdmi" class="inactive">
+                <td><span class="src-name">CH3HDMI</span></td>
+                <td style="text-align:center;"><span class="dot doff"></span></td>
+                <td><div class="lv-wrap"><div class="lv-track"><div class="lv-fill" style="width:0%;"></div></div><span class="lv-val">—</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">80</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">80</span></div></td>
+              </tr>
+              <tr id="tr-ch4hdmi" class="inactive">
+                <td><span class="src-name">CH4HDMI</span></td>
+                <td style="text-align:center;"><span class="dot doff"></span></td>
+                <td><div class="lv-wrap"><div class="lv-track"><div class="lv-fill" style="width:0%;"></div></div><span class="lv-val">—</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">80</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">80</span></div></td>
+              </tr>
+              <tr class="sep-row"><td colspan="5">공통 글로벌 &nbsp;<span class="wbdg">전체 채널 적용</span></td></tr>
+              <tr id="tr-linein">
+                <td><span class="src-name">LineIn</span></td>
+                <td style="text-align:center;"><span class="dot don"></span></td>
+                <td><div class="lv-wrap"><div class="lv-track"><div class="lv-fill" id="lv-linein" style="width:42%;background:#22c55e;"></div></div><span class="lv-val" id="db-linein">-26dB</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">80</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">80</span></div></td>
+              </tr>
+              <tr id="tr-xlrcombo" class="inactive">
+                <td><span class="src-name">XLRCombo</span></td>
+                <td style="text-align:center;"><span class="dot doff"></span></td>
+                <td><div class="lv-wrap"><div class="lv-track"><div class="lv-fill" style="width:0%;"></div></div><span class="lv-val">—</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="70" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">70</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="70" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">70</span></div></td>
+              </tr>
+              <tr id="tr-usbaudio" class="inactive">
+                <td><span class="src-name">USBAudio</span></td>
+                <td style="text-align:center;"><span class="dot doff"></span></td>
+                <td><div class="lv-wrap"><div class="lv-track"><div class="lv-fill" style="width:0%;"></div></div><span class="lv-val">—</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="60" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">60</span></div></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="60" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">60</span></div></td>
+              </tr>
+              <tr id="tr-mixaudio" class="sel-row">
+                <td><span class="src-name">MixAudio</span></td>
+                <td style="text-align:center;"><span class="dot don"></span></td>
+                <td><div class="lv-wrap"><div class="lv-track"><div class="lv-fill" id="lv-mixaudio" style="width:57%;background:#22c55e;"></div></div><span class="lv-val" id="db-mixaudio">-18dB</span></div></td>
+                <td><span class="no-gain">—</span></td>
+                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="90" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">90</span></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function dbToW(db){return Math.min(100,Math.max(0,((db+60)/60)*100));}
+function dbToColor(db){return db>-6?'#ef4444':db>-18?'#f59e0b':'#22c55e';}
+var meters=[
+  {f:'pL',v:'pLv',b:-18},{f:'pR',v:'pRv',b:-20},
+  {f:'lv-ch1hdmi',v:'db-ch1hdmi',b:-16},
+  {f:'lv-ch2hdmi',v:'db-ch2hdmi',b:-22},
+  {f:'lv-linein',v:'db-linein',b:-26},
+  {f:'lv-mixaudio',v:'db-mixaudio',b:-18},
+];
+var t=0;
+setInterval(function(){
+  t++;
+  meters.forEach(function(c,i){
+    var db=c.b+Math.sin(t*0.22+i*1.1)*10+(Math.random()-0.5)*6;
+    db=Math.max(-60,Math.min(0,db));
+    var el=document.getElementById(c.f),vl=document.getElementById(c.v);
+    if(el){el.style.width=dbToW(db)+'%';el.style.background=dbToColor(db);}
+    if(vl){vl.textContent=Math.round(db)+'dB';}
+  });
+},100);
+
+var hasSig={linein:true,xlrcombo:false,usbaudio:false,ch1hdmi:true,ch1sdi:false,ch2hdmi:true,ch3hdmi:false,ch4hdmi:false};
+var mixState={linein:true,xlrcombo:false,usbaudio:false,ch1hdmi:true,ch1sdi:false,ch2hdmi:true,ch3hdmi:false,ch4hdmi:false};
+var noSigRows=['ch1sdi','xlrcombo','usbaudio','ch3hdmi','ch4hdmi'];
+var allRows=['ch1hdmi','ch1sdi','ch2hdmi','ch3hdmi','ch4hdmi','linein','xlrcombo','usbaudio','mixaudio'];
+
+// HOST는 오디오 소스가 linein/xlrcombo/usbaudio/mixaudio만
+function renderSrcBtns(val){
+  var isMix=(val==='mixaudio');
+  var onList=isMix?Object.keys(mixState).filter(function(k){return mixState[k];}):[val];
+  document.querySelectorAll('#srcBtns .src-btn').forEach(function(btn){
+    var s=btn.dataset.src;
+    btn.classList.toggle('on', onList.indexOf(s)>=0);
+    btn.classList.toggle('editable', isMix);
+    btn.classList.toggle('readonly', !isMix);
+    btn.classList.toggle('nosig', !hasSig[s]);
+  });
+  document.getElementById('srcConfigTitle').textContent=isMix?'MixAudio 구성':'선택된 소스';
+  var badge=document.getElementById('srcConfigBadge');
+  if(isMix){badge.className='wbdg';badge.textContent='전체 채널 적용 · 편집 가능';}
+  else{badge.className='bdg';badge.textContent='읽기 전용';}
+  document.getElementById('readonlyNote').style.display=isMix?'none':'block';
+}
+
+function updateTable(val){
+  allRows.forEach(function(k){
+    var row=document.getElementById('tr-'+k);
+    if(!row)return;
+    row.classList.toggle('sel-row', k===val);
+    row.classList.toggle('inactive', noSigRows.indexOf(k)>=0 && k!==val);
+  });
+}
+
+function onSrcChange(val){renderSrcBtns(val);updateTable(val);}
+function toggleSrc(btn){var s=btn.dataset.src;btn.classList.toggle('on');mixState[s]=btn.classList.contains('on');}
+
+renderSrcBtns('mixaudio');
+updateTable('mixaudio');
+function goToSceneMenu(){
+  showToast('🎬 씬 메뉴로 이동합니다 (실제 앱에서 씬 탭으로 전환)');
+}
+
+function showToast(msg){
+  var t=document.getElementById('toast');
+  if(!t){ t=document.createElement('div'); t.id='toast';
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;z-index:999;white-space:nowrap;';
+    document.body.appendChild(t); }
+function identifyDevice(){
+  var btn = document.getElementById('identify-btn');
+  if(!btn || btn.disabled) return;
+  btn.disabled = true;
+  showToast('POST ~/api/v1/system/identify · 장비 램프 점등');
+  var remain = 5;
+  btn.textContent = '\ud83d\udd26 램프 점등 중... ('+remain+'초)';
+  var timer = setInterval(function(){
+    remain -= 1;
+    if(remain <= 0){
+      clearInterval(timer);
+      btn.textContent = '\ud83d\udd26 녹화기 확인';
+      btn.disabled = false;
+      return;
+    }
+    btn.textContent = '\ud83d\udd26 램프 점등 중... ('+remain+'초)';
+  }, 1000);
+}
+
+  t.textContent=msg; t.style.display='block';
+  setTimeout(function(){t.style.display='none';},2400);
+}
+
+
+
+
+
+var recStartTime = null;
+var recElapsedIv = null;
+var recTimerIv   = null;
+var recTimeSec   = 0;
+
+function confirmStartRec(){
+  var chs=[];
+  ['ch1','ch2','ch3','ch4','host'].forEach(function(c){
+    if(document.getElementById('rc-'+c).checked) chs.push(c.toUpperCase());
+  });
+  if(!chs.length){ showToast('채널을 선택해주세요'); return; }
+  var withSub = document.getElementById('rc-sub').checked;
+  var label = chs.join(' · ') + (withSub ? '  (+sub)' : '');
+  closeRecModal();
+  startRecording(label);
+  if(recTimeSec>0){
+    clearTimeout(recTimerIv);
+    recTimerIv=setTimeout(function(){
+      stopRecording();
+      showToast('⏱ 시간 제한 도달 — 녹화 자동 정지');
+    }, recTimeSec*1000);
+  }
+}
+
+function startRecording(channels){
+  recStartTime = new Date();
+  var ri=document.getElementById('rec-idle');
+  var ra=document.getElementById('rec-active');
+  if(ri) ri.style.display='none';
+  if(ra) ra.style.display='flex';
+  var elCh=document.getElementById('rec-channels');
+  var elSt=document.getElementById('rec-start-time');
+  if(elCh) elCh.textContent = channels || 'CH1';
+  if(elSt) elSt.textContent = recStartTime.toTimeString().slice(0,8);
+  recElapsedIv = setInterval(function(){
+    var sec = Math.floor((Date.now()-recStartTime)/1000);
+    var h=String(Math.floor(sec/3600)).padStart(2,'0');
+    var m=String(Math.floor((sec%3600)/60)).padStart(2,'0');
+    var s=String(sec%60).padStart(2,'0');
+    var elEl=document.getElementById('rec-elapsed');
+    if(elEl) elEl.textContent = h+':'+m+':'+s;
+  },1000);
+  showToast('▶ 테스트 녹화 시작 · POST ~/recording/start');
+}
+
+function stopRecording(){
+  clearInterval(recElapsedIv);
+  recStartTime = null;
+  var ra=document.getElementById('rec-active');
+  var ri=document.getElementById('rec-idle');
+  if(ra) ra.style.display='none';
+  if(ri) ri.style.display='flex';
+  showToast('■ 녹화 정지 · POST ~/recording/stop');
+}
+
+function openRecModal(){
+  updateRecPreview();
+  document.getElementById('recModal').classList.add('show');
+}
+
+function closeRecModal(){
+  document.getElementById('recModal').classList.remove('show');
+}
+
+function updateRecPreview(){
+  var chs=[];
+  ['ch1','ch2','ch3','ch4','host'].forEach(function(c){
+    if(document.getElementById('rc-'+c).checked) chs.push(c);
+  });
+  var withSub = document.getElementById('rc-sub').checked;
+  var d = new Date();
+  var ds = d.getFullYear().toString().slice(2)+
+    String(d.getMonth()+1).padStart(2,'0')+
+    String(d.getDate()).padStart(2,'0');
+  var ts = String(d.getHours()).padStart(2,'0')+
+           String(d.getMinutes()).padStart(2,'0')+
+           String(d.getSeconds()).padStart(2,'0');
+
+  var wrap = document.getElementById('rec-paths');
+  wrap.innerHTML = '';
+  if(!chs.length){
+    wrap.innerHTML='<div class="path-display" style="color:#ef4444;">채널을 선택해주세요</div>';
+    return;
+  }
+  var chStr = chs.length===1 ? chs[0] : chs.join('·');
+  var suffix = withSub ? '_*.mp4' : '_main.mp4';
+  wrap.innerHTML = '<div class="path-display">~/data/test/'+ds+'_'+ts+'_'+chStr+suffix+'</div>';
+  if(chs.length>1){
+    wrap.innerHTML += '<div style="font-size:10px;color:#aaa;margin-top:4px;">선택 채널 각각 생성됨</div>';
+  }
+}
+
+</script>
+</body>
+</html>

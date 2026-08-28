@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LABY-4K 시스템/네트워크</title>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px;color:#1a1a1a;}
+.wrap{border:1px solid #ddd;border-radius:12px;overflow:hidden;background:#fff;max-width:1280px;margin:0 auto;}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #eee;}
+.layout{display:flex;}
+.gnb{width:170px;flex-shrink:0;border-right:1px solid #eee;padding:10px 7px;display:flex;flex-direction:column;gap:2px;}
+.gi{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;font-size:12px;color:#666;}
+.gi.on{background:#f0f0f0;color:#1a1a1a;font-weight:500;}
+.gi.on .gi-icon{color:#1a1a1a;}
+.gi:hover .gi-icon{color:#555;}
+.gd{height:1px;background:#eee;margin:5px 3px;}
+.main{flex:1;min-width:0;padding:14px 15px;}
+.ptitle{font-size:15px;font-weight:500;margin:0 0 12px;}
+.tabs{display:flex;border-bottom:1px solid #eee;margin-bottom:14px;}
+.tab{padding:7px 13px;font-size:13px;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;}
+.tab.on{color:#1a1a1a;font-weight:500;border-bottom-color:#1a1a1a;}
+.sec{border:1px solid #eee;border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.sec-hd{display:flex;align-items:center;gap:7px;padding:8px 13px;background:#f8f8f8;border-bottom:1px solid #eee;}
+.sec-title{font-size:12px;font-weight:500;color:#555;}
+.bdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#fff;color:#666;border:1px solid #ddd;}
+.wbdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#fff8e6;color:#b26a00;}
+.rtbdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;}
+.sec-body{padding:13px 14px;}
+.cl{font-size:11px;font-weight:500;color:#aaa;letter-spacing:0.3px;margin:0 0 8px;}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.don{background:#22c55e;} .doff{background:#d1d5db;}
+
+/* MixAudio 테이블 */
+.mix-tbl{width:100%;border-collapse:separate;border-spacing:0;}
+.mix-tbl thead th{font-size:11px;font-weight:500;color:#aaa;padding:3px 8px;border-bottom:1px solid #eee;text-align:left;white-space:nowrap;}
+.mix-tbl tbody td{padding:5px 8px;border-bottom:1px solid #f4f4f4;vertical-align:middle;}
+.mix-tbl tbody tr:last-child td{border-bottom:none;}
+.mix-tbl tbody tr:hover{background:#fafafa;}
+.src-name{font-size:12px;font-weight:500;color:#333;}
+.sep-row td{padding:4px 8px;font-size:10px;font-weight:500;color:#888;background:#f8f8f8;border-top:1px solid #eee;border-bottom:1px solid #eee;}
+
+/* ON/OFF 토글 */
+.toggle{position:relative;display:inline-block;width:34px;height:18px;flex-shrink:0;}
+input:checked+.tslider{background:#1d4ed8;}
+input:checked+.tslider:before{transform:translateX(16px);}
+
+/* 레벨 바 */
+.lv-wrap{display:flex;align-items:center;gap:6px;}
+.lv-track{flex:1;height:8px;background:#eee;border-radius:3px;overflow:hidden;min-width:80px;}
+.lv-fill{height:100%;border-radius:3px;transition:width 0.1s ease;}
+.lv-val{font-size:11px;width:36px;text-align:right;font-variant-numeric:tabular-nums;color:#555;flex-shrink:0;}
+
+/* 슬라이더 — 가늘게 */
+.sl-wrap{display:flex;align-items:center;gap:5px;}
+.sl-val{font-size:11px;width:22px;text-align:right;font-variant-numeric:tabular-nums;color:#555;}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  flex:1;height:2px;border-radius:2px;
+  background:#ddd;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:12px;height:12px;border-radius:50%;
+  background:#555;cursor:pointer;border:none;
+}
+input[type=range]::-moz-range-thumb{
+  width:12px;height:12px;border-radius:50%;
+  background:#555;cursor:pointer;border:none;
+}
+input[type=range]:hover::-webkit-slider-thumb{background:#1a1a1a;}
+.no-gain{font-size:11px;color:#ccc;text-align:center;display:block;}
+
+/* 무신호 화면 */
+.loss-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.loss-card{border:1px solid #eee;border-radius:8px;padding:12px;cursor:pointer;}
+.loss-card.sel{border-color:#555;background:#fafafa;}
+.loss-preview{aspect-ratio:16/9;max-height:80px;background:#111;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-top:8px;overflow:hidden;}
+.loss-settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.loss-setting-card{border:1px solid #eee;border-radius:8px;padding:12px;}
+.loss-setting-card.disabled{opacity:0.35;pointer-events:none;}
+.form-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.form-row:last-child{margin-bottom:0;}
+.form-label{width:52px;flex-shrink:0;font-size:12px;color:#666;}
+input[type=text]{flex:1;padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;}
+input[type=color]{width:32px;height:26px;border:1px solid #ddd;border-radius:4px;padding:1px;cursor:pointer;}
+.gain-title{font-size:12px;font-weight:500;color:#555;margin-bottom:10px;}
+
+/* 아이콘 크기 통일 */
+.gi-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;flex-shrink:0;color:#888;}
+.sec-icon{display:inline-block;width:16px;text-align:center;font-size:13px;flex-shrink:0;line-height:1;}
+
+
+/* 테스트 녹화 모달 */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:#fff;border-radius:14px;width:400px;max-width:95vw;box-shadow:0 24px 80px rgba(0,0,0,0.2);overflow:hidden;}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #eee;background:#fafafa;}
+.modal-title{font-size:14px;font-weight:500;}
+.modal-close{font-size:18px;cursor:pointer;color:#aaa;background:none;border:none;padding:0 4px;line-height:1;}
+.modal-body{padding:18px;display:flex;flex-direction:column;gap:16px;}
+.modal-section{display:flex;flex-direction:column;gap:8px;}
+.modal-label{font-size:11px;font-weight:600;color:#aaa;letter-spacing:0.4px;text-transform:uppercase;}
+/* 채널 선택 */
+.ch-check-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.ch-check{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.ch-check input{display:none;}
+.ch-check-box{width:48px;height:40px;border:1.5px solid #ddd;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#888;background:#fff;transition:all 0.15s;}
+.ch-check input:checked ~ .ch-check-box{border-color:#1e293b;background:#1e293b;color:#fff;}
+.ch-check-info{font-size:10px;color:#aaa;text-align:center;}
+/* 녹화 시간 */
+.time-btns{display:flex;gap:6px;}
+.time-btn{flex:1;padding:6px 0;font-size:12px;border:1.5px solid #ddd;border-radius:7px;background:#fff;color:#666;cursor:pointer;text-align:center;}
+.time-btn.on{border-color:#1e293b;background:#1e293b;color:#fff;font-weight:500;}
+/* 저장경로 */
+.path-display{font-size:12px;font-family:monospace;color:#555;background:#f5f5f5;padding:7px 10px;border-radius:6px;border:1px solid #eee;}
+/* 모달 푸터 */
+.modal-ft{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid #eee;background:#fafafa;}
+.modal-cancel{padding:7px 16px;font-size:13px;border:1px solid #ddd;border-radius:7px;background:#fff;cursor:pointer;color:#555;}
+.modal-start{padding:7px 20px;font-size:13px;font-weight:500;border:none;border-radius:7px;background:#1e293b;color:#fff;cursor:pointer;}
+.modal-start:hover{background:#0f172a;}bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;display:none;z-index:999;white-space:nowrap;}
+
+/* 아이콘 크기 통일 */
+.gi-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;flex-shrink:0;color:#888;}
+.sec-icon{display:inline-block;width:16px;text-align:center;font-size:13px;flex-shrink:0;line-height:1;}
+
+
+
+
+/* 녹화 상태 바 */
+.rec-bar{display:flex;align-items:center;gap:10px;padding:7px 16px;background:#1a1a1a;border-bottom:1px solid #333;}
+.rec-idle-lbl{font-size:12px;color:#888;}
+.rec-sp{flex:1;}
+.btn-rec-test{padding:4px 14px;font-size:12px;font-weight:500;border:1px solid #22c55e;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;cursor:pointer;}
+.rec-dot-r{width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0;animation:recblink 1.2s infinite;}
+@keyframes recblink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.rec-lbl{font-size:12px;font-weight:600;color:#ef4444;}
+.rec-div{width:1px;height:14px;background:#444;flex-shrink:0;}
+.rec-chs{font-size:12px;color:#fff;font-weight:500;}
+.rec-tlbl{font-size:11px;color:#888;}
+.rec-tval{font-size:12px;color:#d1d5db;font-variant-numeric:tabular-nums;font-family:monospace;}
+.rec-elapsed{font-size:13px;color:#fff;font-variant-numeric:tabular-nums;font-family:monospace;font-weight:500;}
+.rec-stop{padding:4px 14px;font-size:12px;font-weight:500;border:1px solid #ef4444;border-radius:6px;background:rgba(239,68,68,0.15);color:#ef4444;cursor:pointer;}
+/* 출력 구성 */
+.output-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;}
+.output-card{border:1px solid #eee;border-radius:8px;padding:12px 14px;}
+.output-card-title{font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.output-icon{font-size:14px;}
+.output-sel{width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;cursor:pointer;}
+.output-cur{font-size:10px;color:#aaa;margin-top:5px;}
+.output-refresh-btn{font-size:11px;padding:3px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;cursor:pointer;}
+.output-refresh-btn:hover{background:#f5f5f5;}
+.output-status-row{display:flex;align-items:center;gap:5px;margin-top:5px;}
+.output-applied-dot{width:7px;height:7px;border-radius:50%;background:#d1d5db;flex-shrink:0;}
+.output-applied-dot.synced{background:#22c55e;}
+.output-applied-dot.diff{background:#f59e0b;}
+.sys-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.sys-card{border:1px solid #eee;border-radius:8px;padding:14px 16px;}
+.sys-card-title{font-size:12px;font-weight:600;color:#374151;margin-bottom:10px;}
+.sys-field{display:flex;flex-direction:column;gap:3px;margin-bottom:8px;}
+.sys-lbl{font-size:10px;color:#aaa;}
+.sys-inp{padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;width:100%;}
+.sys-inp:disabled{background:#f8fafc;color:#aaa;cursor:not-allowed;}
+.sys-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.sys-btn{padding:5px 14px;font-size:12px;font-weight:500;border:none;border-radius:6px;cursor:pointer;border:1px solid transparent;}
+.sys-btn-primary{background:#1d4ed8;color:#fff;}
+.sys-btn-primary:hover{background:#1e40af;}
+.sys-btn-danger{background:#fff;border-color:#ef4444;color:#ef4444;}
+.sys-btn-danger:hover{background:#fee2e2;}
+.sys-btn-gray{background:#f1f5f9;color:#374151;border-color:#ddd;}
+.toggle-wrap{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.toggle{width:36px;height:20px;background:#d1d5db;border-radius:10px;position:relative;cursor:pointer;border:none;flex-shrink:0;transition:background 0.2s;}
+.toggle.on{background:#3b82f6;}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left 0.2s;}
+.toggle.on::after{left:18px;}
+.toggle-lbl{font-size:12px;color:#374151;}
+.stor-list{display:flex;flex-direction:column;gap:8px;padding:0 14px 14px;}
+.stor-item{border:1px solid #eee;border-radius:8px;padding:10px 12px;}
+.stor-item-hd{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap;}
+.stor-badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;}
+.stor-ready{background:#dcfce7;color:#15803d;}
+.stor-formatting{background:#fef9c3;color:#854d0e;}
+.stor-error{background:#fee2e2;color:#b91c1c;}
+.stor-primary-badge{background:#dbeafe;color:#1d4ed8;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;}
+.stor-name{font-size:12px;font-weight:600;color:#1e293b;}
+.stor-meta{font-size:11px;color:#888;margin-left:auto;}
+.stor-bar{height:4px;border-radius:2px;background:#e5e7eb;overflow:hidden;margin:5px 0 3px;}
+.stor-bar-fill{height:100%;border-radius:2px;background:#3b82f6;}
+.stor-bar-fill.warn{background:#f59e0b;}
+.stor-bar-fill.danger{background:#ef4444;}
+.stor-cap{font-size:10px;color:#aaa;}
+.stor-path{font-size:11px;color:#888;margin-top:3px;}
+.stor-actions{display:flex;gap:6px;margin-top:7px;justify-content:flex-end;}
+.reboot-card{border:1.5px solid #fca5a5;background:#fff5f5;border-radius:8px;padding:14px 16px;}
+.reboot-desc{font-size:11px;color:#888;margin-bottom:10px;line-height:1.6;}
+
+.stor-summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.stor-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:#f1f5f9;color:#475569;font-family:monospace;}
+.stor-detail{display:none;margin-top:8px;border-top:1px solid #f1f5f9;padding-top:8px;}
+.stor-detail.show{display:block;}
+.stor-detail-table{width:100%;border-collapse:collapse;font-size:11px;}
+.stor-detail-table tr td{padding:3px 6px;border-bottom:1px solid #f8fafc;color:#374151;vertical-align:top;}
+.stor-detail-table tr td:first-child{color:#94a3b8;white-space:nowrap;width:110px;font-family:monospace;}
+.stor-detail-table tr td:last-child{color:#1e293b;}
+.btn-detail{font-size:11px;padding:3px 10px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;color:#64748b;cursor:pointer;}
+.btn-detail:hover{background:#f8fafc;}
+.days-wrap{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0;}
+.day-btn{padding:4px 8px;font-size:11px;font-weight:500;border:1.5px solid #e2e8f0;border-radius:6px;background:#fff;color:#94a3b8;cursor:pointer;min-width:32px;text-align:center;transition:all 0.12s;}
+.day-btn.on{border-color:#3b82f6;background:#eff6ff;color:#1d4ed8;}
+.day-all-toggle{font-size:11px;color:#3b82f6;cursor:pointer;text-decoration:underline;margin-bottom:4px;background:none;border:none;padding:0;}
+.policy-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.policy-card{border:1px solid #eee;border-radius:8px;padding:14px 16px;}
+.policy-card-title{font-size:12px;font-weight:600;color:#374151;margin-bottom:4px;}
+.policy-desc{font-size:11px;color:#aaa;line-height:1.5;margin-bottom:10px;}
+.policy-toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.policy-inp-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.policy-inp{padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;width:100px;}
+.policy-inp:disabled{background:#f8fafc;color:#aaa;}
+.policy-unit{font-size:11px;color:#64748b;}
+.policy-hint{font-size:10px;color:#94a3b8;margin-top:3px;}
+.policy-warn{background:#fef9c3;border:1px solid #fde68a;border-radius:6px;padding:5px 9px;font-size:11px;color:#92400e;margin-top:6px;display:none;}
+.policy-warn.show{display:block;}</style>
+</head>
+<body>
+<div style="background:#1e293b;color:#94a3b8;font-size:10px;text-align:right;padding:3px 14px;letter-spacing:0.5px;">
+  화면설계서 <strong style="color:#e2e8f0;">ver 14</strong> &nbsp;·&nbsp; LABY-4K LabyConfig4K &nbsp;·&nbsp; 2026-08-06
+</div>
+<!-- 테스트 녹화 모달 -->
+<div class="modal-overlay" id="recModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title">테스트 녹화 시작</span>
+      <button class="modal-close" onclick="closeRecModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- 채널 선택 (main) -->
+      <div class="modal-section">
+        <span class="modal-label">녹화 채널 (main)</span>
+        <div class="ch-check-grid">
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch1" checked onchange="updateRecPreview()">
+            <div class="ch-check-box">CH1</div>
+            <span class="ch-check-info">FHD</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch2" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH2</div>
+            <span class="ch-check-info">FHD</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch3" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH3</div>
+            <span class="ch-check-info">idle</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch4" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH4</div>
+            <span class="ch-check-info">idle</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-host" onchange="updateRecPreview()">
+            <div class="ch-check-box">Scene</div>
+            <span class="ch-check-info">Mix</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- sub 포함 여부 -->
+      <div class="modal-section">
+        <span class="modal-label">sub 스트림</span>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:#555;">
+          <input type="checkbox" id="rc-sub" onchange="updateRecPreview()"
+            style="width:15px;height:15px;accent-color:#475569;cursor:pointer;">
+          선택된 채널의 sub 함께 녹화
+          <span style="font-size:11px;color:#aaa;">(UHD 백업용)</span>
+        </label>
+      </div>
+
+      <!-- 시간 제한 -->
+      <div class="modal-section">
+        <span class="modal-label">시간 제한</span>
+        <div class="time-btns">
+          <div class="time-btn" onclick="selectTime(this,30)">30초</div>
+          <div class="time-btn on" onclick="selectTime(this,60)">60초</div>
+          <div class="time-btn" onclick="selectTime(this,120)">2분</div>
+          <div class="time-btn" onclick="selectTime(this,0)">제한 없음</div>
+        </div>
+      </div>
+
+      <!-- 예상 저장 경로 -->
+      <div class="modal-section">
+        <span class="modal-label">예상 저장 경로</span>
+        <div id="rec-paths" style="display:flex;flex-direction:column;gap:4px;"></div>
+        <div style="font-size:10px;color:#bbb;margin-top:4px;">경로 패턴은 설정프로그램에 정의된 규칙 적용</div>
+      </div>
+
+    </div>
+    <div class="modal-ft">
+      <button class="modal-cancel" onclick="closeRecModal()">취소</button>
+      <button class="modal-start" onclick="confirmStartRec()">▶ 녹화 시작</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div class="wrap">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:7px;font-size:14px;font-weight:500;">📹 LABY-4K 설정프로그램</div>
+    <div style="display:flex;align-items:center;gap:9px;">
+      <a href="laby4k_wizard_v1.html" style="font-size:12px;padding:4px 10px;border:1px solid #93c5fd;border-radius:6px;background:#eff6ff;color:#1d4ed8;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">⚡ 간편설정</a>
+      <button id="identify-btn" onclick="identifyDevice()" style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;font-weight:500;cursor:pointer;">🔦 녹화기 확인</button>
+      <span style="font-size:12px;color:#888;background:#f5f5f5;padding:3px 9px;border-radius:6px;">● IDLE</span>
+      <button style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;">로그아웃</button>
+    </div>
+  </div>
+  <div class="rec-bar" id="rec-bar">
+    <!-- 대기 상태 -->
+    <div id="rec-idle" style="display:flex;align-items:center;gap:10px;width:100%;">
+      <span class="rec-idle-lbl">● 녹화 대기 중</span>
+      <span class="rec-sp"></span>
+      <button class="btn-rec-test" onclick="openRecModal()">▶ 테스트 녹화 시작</button>
+    </div>
+    <!-- 녹화 중 상태 -->
+    <div id="rec-active" style="display:none;align-items:center;gap:10px;width:100%;">
+      <span class="rec-dot-r"></span>
+      <span class="rec-lbl">REC</span>
+      <span class="rec-div"></span>
+      <span class="rec-chs" id="rec-channels">CH1</span>
+      <span class="rec-div"></span>
+      <span class="rec-tlbl">시작</span>
+      <span class="rec-tval" id="rec-start-time">—</span>
+      <span class="rec-div"></span>
+      <span class="rec-elapsed" id="rec-elapsed">00:00:00</span>
+      <span class="rec-sp"></span>
+      <button class="rec-stop" onclick="stopRecording()">■ 녹화 정지</button>
+    </div>
+  </div>
+    <div class="layout">
+    <div class="gnb">
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="8" width="3.5" height="6.5" rx="0.5"/><rect x="6.2" y="4" width="3.5" height="10.5" rx="0.5"/><rect x="11.5" y="1" width="3.5" height="13.5" rx="0.5"/></svg></span>대시보드</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="12" height="8" rx="1.5"/><line x1="5" y1="4" x2="5" y2="2"/><line x1="11" y1="4" x2="11" y2="2"/><line x1="8" y1="12" x2="8" y2="14"/><line x1="5" y1="8" x2="11" y2="8"/></svg></span>입출력 설정</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="3" width="14" height="10" rx="1"/><line x1="1" y1="6.5" x2="15" y2="6.5"/><line x1="4" y1="3" x2="4" y2="6.5"/><line x1="8" y1="3" x2="8" y2="6.5"/><line x1="12" y1="3" x2="12" y2="6.5"/><line x1="4" y1="9.5" x2="4" y2="13"/><line x1="8" y1="9.5" x2="8" y2="13"/><line x1="12" y1="9.5" x2="12" y2="13"/></svg></span>씬</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="4" x2="15" y2="4"/><line x1="1" y1="8" x2="15" y2="8"/><line x1="1" y1="12" x2="15" y2="12"/><circle cx="5" cy="4" r="2" fill="white" stroke="currentColor"/><circle cx="11" cy="8" r="2" fill="white" stroke="currentColor"/><circle cx="7" cy="12" r="2" fill="white" stroke="currentColor"/></svg></span>인코딩 및 프로파일</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 5.5 C4 2.5 12 2.5 15 5.5"/><path d="M3.5 8.2 C5.5 6.2 10.5 6.2 12.5 8.2"/><path d="M6 10.5 C7 9.5 9 9.5 10 10.5"/><circle cx="8" cy="13" r="1.2" fill="currentColor" stroke="none"/></svg></span>스트리밍</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg></span>녹화 및 저장</div>
+      <div class="gi" onclick="showPage&&showPage('upload')" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></span>업로드</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="12" cy="10" r="3"/></svg></span>기기 녹화 설정</div>
+      <div class="gd"></div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>파일 관리</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg></span>계정</div>
+      <div class="gi on"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.5"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/><line x1="2.9" y1="2.9" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="13.1" y2="13.1"/><line x1="2.9" y1="13.1" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="13.1" y2="2.9"/></svg></span>시스템 및 네트워크</div>
+    </div>
+    <div class="main">
+      <div class="page-hd"><span class="page-title">시스템 및 네트워크</span></div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- 장비 정보 -->
+        <div class="sec">
+          <div class="sec-hd">
+            <span class="sec-title"><span class="sec-icon">🏷</span>장비 정보</span>
+            <span class="bdg">GET ~/api/laby/device</span>
+          </div>
+          <div class="sys-grid">
+            <div class="sys-card">
+              <div class="sys-card-title">📦 제품 정보</div>
+              <div class="sys-field"><span class="sys-lbl">모델명</span><input class="sys-inp" value="Laby-IV 4K" readonly style="background:#f8fafc;color:#666;"></div>
+              <div class="sys-field"><span class="sys-lbl">펌웨어 버전</span><input class="sys-inp" value="v1.1.1.1" readonly style="background:#f8fafc;color:#666;"></div>
+            </div>
+            <div class="sys-card">
+              <div class="sys-card-title">🔖 시리얼번호</div>
+              <div id="serial-row-sys"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 네트워크 설정 -->
+        <div class="sec">
+          <div class="sec-hd">
+            <span class="sec-title"><span class="sec-icon">🌐</span>네트워크 설정</span>
+            <span class="bdg">POST ~/system/network</span>
+          </div>
+          <div class="sys-grid">
+            <div class="sys-card">
+              <div class="sys-card-title">🔌 기본 네트워크 (eth0)</div>
+              <div class="toggle-wrap">
+                <button class="toggle on" id="dhcp-toggle" onclick="toggleDHCP()"></button>
+                <span class="toggle-lbl" id="dhcp-lbl">DHCP 자동</span>
+              </div>
+              <div id="static-fields" style="display:none;">
+                <div class="sys-row" style="margin-bottom:6px;">
+                  <div class="sys-field"><span class="sys-lbl">IP 주소</span><input class="sys-inp" id="net-ip" placeholder="192.168.0.100"></div>
+                  <div class="sys-field"><span class="sys-lbl">서브넷</span><input class="sys-inp" id="net-subnet" placeholder="255.255.255.0"></div>
+                </div>
+                <div class="sys-row" style="margin-bottom:6px;">
+                  <div class="sys-field"><span class="sys-lbl">게이트웨이</span><input class="sys-inp" id="net-gw" placeholder="192.168.0.1"></div>
+                  <div class="sys-field"><span class="sys-lbl">DNS 1</span><input class="sys-inp" id="net-dns1" placeholder="8.8.8.8"></div>
+                </div>
+                <div class="sys-field" style="margin-bottom:8px;"><span class="sys-lbl">DNS 2</span><input class="sys-inp" id="net-dns2" placeholder="1.1.1.1" style="width:48%;"></div>
+              </div>
+              <button class="sys-btn sys-btn-primary" onclick="applyNetwork()">저장</button>
+            </div>
+            <div class="sys-card">
+              <div class="sys-card-title">🕐 NTP / 시간 설정</div>
+              <div class="toggle-wrap">
+                <button class="toggle on" id="ntp-toggle" onclick="toggleNTP()"></button>
+                <span class="toggle-lbl" id="ntp-lbl">NTP 동기화 사용</span>
+              </div>
+              <div id="ntp-server-field" style="margin-bottom:8px;">
+                <div class="sys-field"><span class="sys-lbl">NTP 서버</span><input class="sys-inp" id="ntp-server" value="pool.ntp.org"></div>
+              </div>
+              <div id="manual-time-field" style="display:none;margin-bottom:8px;">
+                <div class="sys-field"><span class="sys-lbl">날짜/시간 직접 입력</span><input class="sys-inp" id="manual-time" type="datetime-local"></div>
+              </div>
+              <div class="sys-field" style="margin-bottom:8px;">
+                <span class="sys-lbl">타임존</span>
+                <select class="sys-inp" id="ntp-timezone">
+                  <option value="Asia/Seoul">Asia/Seoul (UTC+9)</option>
+                  <option value="Asia/Tokyo">Asia/Tokyo (UTC+9)</option>
+                  <option value="Asia/Shanghai">Asia/Shanghai (UTC+8)</option>
+                  <option value="Asia/Singapore">Asia/Singapore (UTC+8)</option>
+                  <option value="UTC">UTC (UTC+0)</option>
+                  <option value="Europe/London">Europe/London (UTC+0/+1)</option>
+                  <option value="Europe/Paris">Europe/Paris (UTC+1/+2)</option>
+                  <option value="America/New_York">America/New_York (UTC-5/-4)</option>
+                  <option value="America/Los_Angeles">America/Los_Angeles (UTC-8/-7)</option>
+                </select>
+              </div>
+              <button class="sys-btn sys-btn-primary" onclick="applyNTP()">저장</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 전원 관리 -->
+        <div class="sec">
+          <div class="sec-hd">
+            <span class="sec-title"><span class="sec-icon">⚡</span>전원 관리</span>
+          </div>
+          <div class="sys-grid">
+            <div class="sys-card">
+              <div class="sys-card-title">🔌 전원 제어 네트워크 <span class="bdg" style="margin-left:4px;">POST ~/power/network</span></div>
+              <div class="toggle-wrap">
+                <button class="toggle" id="pwr-dhcp-toggle" onclick="togglePowerDHCP()"></button>
+                <span class="toggle-lbl" id="pwr-dhcp-lbl">DHCP 자동</span>
+              </div>
+              <div class="sys-row" style="margin-bottom:6px;">
+                <div class="sys-field"><span class="sys-lbl">IP 주소</span><input class="sys-inp" id="pwr-ip" value="192.168.0.50"></div>
+                <div class="sys-field"><span class="sys-lbl">서브넷</span><input class="sys-inp" id="pwr-subnet" value="255.255.255.0"></div>
+              </div>
+              <div class="sys-row" style="margin-bottom:6px;">
+                <div class="sys-field"><span class="sys-lbl">게이트웨이</span><input class="sys-inp" id="pwr-gw" value="192.168.0.1"></div>
+                <div class="sys-field"><span class="sys-lbl">포트</span><input class="sys-inp" id="pwr-port" value="5000"></div>
+              </div>
+              <div class="sys-row" style="margin-bottom:8px;">
+                <div class="sys-field"><span class="sys-lbl">DNS 1</span><input class="sys-inp" id="pwr-dns1" value="8.8.8.8"></div>
+                <div class="sys-field"><span class="sys-lbl">DNS 2</span><input class="sys-inp" id="pwr-dns2" value="1.1.1.1"></div>
+              </div>
+              <button class="sys-btn sys-btn-primary" onclick="applyPowerNetwork()">저장</button>
+            </div>
+            <div class="sys-card">
+              <div class="sys-card-title">⏰ 전원 스케줄 <span class="bdg" style="margin-left:4px;">POST ~/power/schedule</span></div>
+              <div class="toggle-wrap">
+                <button class="toggle" id="sched-toggle" onclick="toggleSchedule()"></button>
+                <span class="toggle-lbl" id="sched-lbl">스케줄 사용 안 함</span>
+              </div>
+              <div id="sched-fields" style="opacity:0.4;pointer-events:none;">
+                <div class="sys-row" style="margin-bottom:8px;">
+                  <div class="sys-field"><span class="sys-lbl">켜는 시간 (ON)</span><input class="sys-inp" id="sched-on" type="time" value="08:00"></div>
+                  <div class="sys-field"><span class="sys-lbl">끄는 시간 (OFF)</span><input class="sys-inp" id="sched-off" type="time" value="23:00"></div>
+                </div>
+                <div class="sys-field">
+                  <span class="sys-lbl">반복 요일</span>
+                  <button class="day-all-toggle" onclick="toggleAllDays()">매일 반복</button>
+                  <div class="days-wrap" id="days-wrap">
+                    <button class="day-btn" data-day="mon" onclick="toggleDay(this)">월</button>
+                    <button class="day-btn" data-day="tue" onclick="toggleDay(this)">화</button>
+                    <button class="day-btn" data-day="wed" onclick="toggleDay(this)">수</button>
+                    <button class="day-btn" data-day="thu" onclick="toggleDay(this)">목</button>
+                    <button class="day-btn" data-day="fri" onclick="toggleDay(this)">금</button>
+                    <button class="day-btn" data-day="sat" onclick="toggleDay(this)">토</button>
+
+                  </div>
+                  <div id="days-hint" style="font-size:10px;color:#aaa;">선택 없음 = 매일 반복</div>
+                </div>
+              </div>
+              <button class="sys-btn sys-btn-primary" onclick="applySchedule()">저장</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 운영 정책 -->
+        <div class="sec" style="margin-bottom:12px;">
+          <div class="sec-hd">
+            <span class="sec-title"><span class="sec-icon">🗂</span>운영 정책</span>
+          </div>
+          <p style="font-size:11px;color:#aaa;margin-bottom:12px;">저장소 용량 관리 및 데이터 보관 정책을 설정합니다.</p>
+
+          <!-- 자동 삭제 마스터 토글 -->
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f8fafc;border-radius:8px;margin-bottom:14px;">
+            <button class="toggle" id="auto-del-master" onclick="toggleAutoDel()"></button>
+            <div>
+              <span style="font-size:12px;font-weight:600;color:#374151;" id="auto-del-lbl">자동 삭제 사용 안 함</span>
+              <div style="font-size:10px;color:#aaa;margin-top:1px;">사용 안 함 시 예상 녹화 가능 시간이 1시간 이내면 녹화가 제한됩니다. 삭제는 운영자가 직접 수행합니다.</div>
+            </div>
+          </div>
+
+          <!-- 스케줄 / 실시간 삭제 (자동삭제 ON시 활성) -->
+          <div id="auto-del-options" style="opacity:0.4;pointer-events:none;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;margin:8px 14px 0;">
+            <div style="font-size:10px;color:#f59e0b;margin-bottom:10px;">⚠ 스케줄 삭제 또는 실시간 삭제 중 하나 이상 반드시 선택해야 합니다.</div>
+            <div class="policy-grid">
+
+              <!-- 스케줄 삭제 -->
+              <div class="policy-card" id="sched-del-card">
+                <div class="policy-card-title">🗓 스케줄 삭제</div>
+                <div class="policy-desc">비녹화 시간대에 정기적으로 여유 공간을 미리 확보합니다.<br>오래된 파일부터 순서대로 삭제합니다.</div>
+                <div class="policy-toggle-row">
+                  <button class="toggle" id="sched-del-toggle" onclick="toggleSubDel('sched')"></button>
+                  <span style="font-size:12px;color:#374151;" id="sched-del-lbl">사용 안 함</span>
+                </div>
+                <div id="sched-del-fields" style="opacity:0.4;pointer-events:none;">
+                  <div class="policy-inp-row" style="margin-bottom:6px;">
+                    <input class="policy-inp" type="number" id="sched-del-gb" value="100" min="1">
+                    <span class="policy-unit">GB 이상 확보</span>
+                  </div>
+                  <div class="policy-hint" style="margin-bottom:8px;">예) scheduled_maxstoragefree_gb: 100</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div>
+                      <div style="font-size:10px;color:#aaa;margin-bottom:4px;">실행 주기</div>
+                      <select class="sys-inp" id="sched-del-cycle" style="width:100%;">
+                        <option value="daily">매일 1회</option>
+                        <option value="12h">12시간마다</option>
+                        <option value="6h">6시간마다</option>
+                      </select>
+                    </div>
+                    <div>
+                      <div style="font-size:10px;color:#aaa;margin-bottom:4px;">실행 시간</div>
+                      <input class="sys-inp" type="time" id="sched-del-time" value="03:00" style="width:100%;">
+                    </div>
+                  </div>
+                </div>
+                
+              </div>
+
+              <!-- 실시간 삭제 -->
+              <div class="policy-card" id="rt-del-card">
+                <div class="policy-card-title">⚡ 실시간 삭제</div>
+                <div class="policy-desc">녹화 중 저장 공간이 급격히 줄어들 때 오래된 파일을 즉시 삭제하여 녹화 중단을 방지합니다.</div>
+                <div class="policy-toggle-row">
+                  <button class="toggle" id="rt-del-toggle" onclick="toggleSubDel('rt')"></button>
+                  <span style="font-size:12px;color:#374151;" id="rt-del-lbl">사용 안 함</span>
+                </div>
+                <div id="rt-del-fields" style="opacity:0.4;pointer-events:none;">
+                  <div class="policy-inp-row">
+                    <input class="policy-inp" type="number" id="rt-del-gb" value="50" min="1">
+                    <span class="policy-unit">GB 미만 시 즉시 삭제</span>
+                  </div>
+                  <div class="policy-hint">예) realtime_maxstoragefree_gb: 50</div>
+                </div>
+                
+              </div>
+
+            </div>
+          </div>
+
+          <!-- 이력 보관 기간 (항상 표시) -->
+          <div style="padding:0 14px 4px;"><div class="policy-card" style="margin-top:14px;margin-left:0;margin-right:0;">
+            <div class="policy-card-title">📋 이력 보관 기간</div>
+            <div class="policy-desc">전송 이력, 녹화 이력 등 로그 데이터의 보관 기간입니다.</div>
+            <div class="policy-inp-row">
+              <select class="sys-inp" id="retention-period" style="width:auto;">
+                <option value="1">1개월</option>
+                <option value="3">3개월</option>
+                <option value="6" selected>6개월</option>
+                <option value="12">12개월</option>
+                <option value="0">무제한</option>
+              </select>
+            </div>
+            <div class="policy-hint" style="margin-top:4px;">전송 이력 · 녹화 이력 · 시스템 로그에 동일 적용</div>
+            
+          </div></div>
+
+        
+          <div style="margin:12px 14px 14px;padding-top:12px;border-top:1px solid #f1f5f9;">
+            <button class="sys-btn sys-btn-primary" onclick="savePolicyAll()">저장</button>
+            <span style="font-size:11px;color:#aaa;"></span>
+          </div>
+        </div>
+
+
+
+        <!-- 저장소 -->
+        <div class="sec">
+          <div class="sec-hd">
+            <span class="sec-title"><span class="sec-icon">💾</span>저장소</span>
+            <span class="bdg">GET ~/storage</span>
+            <span style="flex:1;"></span>
+            <button class="sys-btn sys-btn-gray" onclick="refreshStorage()" style="font-size:11px;padding:3px 10px;">↺ 새로고침</button>
+          </div>
+          <div class="stor-list" id="stor-list"></div>
+        </div>
+
+        <!-- 재부팅 -->
+        <div class="sec">
+          <div class="sec-hd">
+            <span class="sec-title"><span class="sec-icon">🔄</span>시스템 재부팅</span>
+            <span class="bdg">POST ~/system/reboot</span>
+          </div>
+          <div style="padding:0 14px 14px;">
+            <div class="reboot-card">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                <div class="reboot-desc" style="margin-bottom:0;">장비를 재부팅합니다. 녹화/스트리밍 중인 경우 모두 중단됩니다.<br>재부팅 후 복귀까지 약 60~90초가 소요됩니다.</div>
+                <button class="sys-btn sys-btn-danger" style="white-space:nowrap;flex-shrink:0;" onclick="confirmReboot()">🔄 재부팅</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function identifyDevice(){
+  var btn = document.getElementById('identify-btn');
+  if(!btn || btn.disabled) return;
+  btn.disabled = true;
+  showToast('POST ~/api/v1/system/identify · 장비 램프 점등');
+  var remain = 5;
+  btn.textContent = '🔦 램프 점등 중... ('+remain+'초)';
+  var timer = setInterval(function(){
+    remain -= 1;
+    if(remain <= 0){
+      clearInterval(timer);
+      btn.textContent = '🔦 녹화기 확인';
+      btn.disabled = false;
+      return;
+    }
+    btn.textContent = '🔦 램프 점등 중... ('+remain+'초)';
+  }, 1000);
+}
+
+var recStartTime = null;
+function showToast(msg){
+  var t=document.getElementById('toast');
+  if(!t) return;
+  t.textContent=msg; t.style.display='block';
+  clearTimeout(showToast._t);
+  showToast._t=setTimeout(function(){t.style.display='none';}
+,2500);
+}
+
+// ── 시리얼번호 (최초 1회만 등록 가능, 이후 읽기 전용) ──
+// GET ~/api/laby/device 로 조회했을 때 serial_number가 비어있으면 등록 UI, 있으면 읽기 전용 표시.
+var DEVICE_SERIAL = ""; // 데모: 미등록 상태로 시작
+
+function renderSerialRowSys(){
+  var el = document.getElementById('serial-row-sys');
+  if(DEVICE_SERIAL){
+    el.innerHTML = '<div class="sys-field"><span class="sys-lbl">시리얼번호</span>'+
+      '<input class="sys-inp" value="'+DEVICE_SERIAL+'" readonly style="background:#f8fafc;color:#666;font-family:monospace;"></div>';
+    return;
+  }
+  el.innerHTML = '<div class="sys-field"><span class="sys-lbl">시리얼번호</span>'+
+    '<input type="text" class="sys-inp" id="serial-input-sys" placeholder="예: SN-2026-000123" style="font-family:monospace;"></div>'+
+    '<div style="font-size:10px;color:#bbb;margin:-4px 0 8px;">최초 1회만 등록 가능 · 등록 후 변경 불가</div>'+
+    '<button class="sys-btn sys-btn-primary" id="serial-register-btn-sys">등록</button>';
+  document.getElementById('serial-register-btn-sys').addEventListener('click', registerSerialSys);
+  document.getElementById('serial-input-sys').addEventListener('keydown', function(e){ if(e.key==='Enter'){ registerSerialSys(); } });
+}
+
+function registerSerialSys(){
+  if(DEVICE_SERIAL){ showToast('이미 등록된 장비입니다'); return; }
+  var v = document.getElementById('serial-input-sys').value.trim();
+  if(!v){ showToast('시리얼번호를 입력해주세요'); return; }
+  DEVICE_SERIAL = v;
+  renderSerialRowSys();
+  showToast('시리얼번호가 등록되었습니다 (이후 변경 불가)');
+}
+renderSerialRowSys();
+
+function openRecModal(){
+  updateRecPreview();
+  document.getElementById('recModal').classList.add('show');
+}
+
+function closeRecModal(){
+  document.getElementById('recModal').classList.remove('show');
+}
+
+function updateRecPreview(){
+  var chs=[];
+  ['ch1','ch2','ch3','ch4','host'].forEach(function(c){
+    if(document.getElementById('rc-'+c).checked) chs.push(c);
+  });
+  var withSub = document.getElementById('rc-sub').checked;
+  var d = new Date();
+  var ds = d.getFullYear().toString().slice(2)+
+    String(d.getMonth()+1).padStart(2,'0')+
+    String(d.getDate()).padStart(2,'0');
+  var ts = String(d.getHours()).padStart(2,'0')+
+           String(d.getMinutes()).padStart(2,'0')+
+           String(d.getSeconds()).padStart(2,'0');
+
+  var wrap = document.getElementById('rec-paths');
+  wrap.innerHTML = '';
+  if(!chs.length){
+    wrap.innerHTML='<div class="path-display" style="color:#ef4444;">채널을 선택해주세요</div>';
+    return;
+  }
+  var chStr = chs.length===1 ? chs[0] : chs.join('·');
+  var suffix = withSub ? '_*.mp4' : '_main.mp4';
+  wrap.innerHTML = '<div class="path-display">~/data/test/'+ds+'_'+ts+'_'+chStr+suffix+'</div>';
+  if(chs.length>1){
+    wrap.innerHTML += '<div style="font-size:10px;color:#aaa;margin-top:4px;">선택 채널 각각 생성됨</div>';
+  }
+}
+
+function confirmStartRec(){
+  var chs=[];
+  ['ch1','ch2','ch3','ch4','host'].forEach(function(c){
+    if(document.getElementById('rc-'+c).checked) chs.push(c.toUpperCase());
+  });
+  if(!chs.length){ showToast('채널을 선택해주세요'); return; }
+  var withSub = document.getElementById('rc-sub').checked;
+  var label = chs.join(' · ') + (withSub ? '  (+sub)' : '');
+  closeRecModal();
+  startRecording(label);
+  if(recTimeSec>0){
+    clearTimeout(recTimerIv);
+    recTimerIv=setTimeout(function(){
+      stopRecording();
+      showToast('⏱ 시간 제한 도달 — 녹화 자동 정지');
+    }, recTimeSec*1000);
+  }
+}
+
+function startRecording(channels){
+  recStartTime = new Date();
+  var ri=document.getElementById('rec-idle');
+  var ra=document.getElementById('rec-active');
+  if(ri) ri.style.display='none';
+  if(ra) ra.style.display='flex';
+  var elCh=document.getElementById('rec-channels');
+  var elSt=document.getElementById('rec-start-time');
+  if(elCh) elCh.textContent = channels || 'CH1';
+  if(elSt) elSt.textContent = recStartTime.toTimeString().slice(0,8);
+  recElapsedIv = setInterval(function(){
+    var sec = Math.floor((Date.now()-recStartTime)/1000);
+    var h=String(Math.floor(sec/3600)).padStart(2,'0');
+    var m=String(Math.floor((sec%3600)/60)).padStart(2,'0');
+    var s=String(sec%60).padStart(2,'0');
+    var elEl=document.getElementById('rec-elapsed');
+    if(elEl) elEl.textContent = h+':'+m+':'+s;
+  },1000);
+  showToast('▶ 테스트 녹화 시작 · POST ~/recording/start');
+}
+
+function stopRecording(){
+  clearInterval(recElapsedIv);
+  recStartTime = null;
+  var ra=document.getElementById('rec-active');
+  var ri=document.getElementById('rec-idle');
+  if(ra) ra.style.display='none';
+  if(ri) ri.style.display='flex';
+  showToast('■ 녹화 정지 · POST ~/recording/stop');
+}
+
+/* 네트워크 */
+var dhcpOn=true;
+function toggleDHCP(){
+  dhcpOn=!dhcpOn;
+  document.getElementById('dhcp-toggle').classList.toggle('on',dhcpOn);
+  document.getElementById('dhcp-lbl').textContent=dhcpOn?'DHCP 자동':'고정 IP';
+  document.getElementById('static-fields').style.display=dhcpOn?'none':'block';
+}
+function applyNetwork(){ showToast('POST ~/system/network · 네트워크 설정 저장'); }
+
+/* NTP */
+var ntpOn=true;
+function toggleNTP(){
+  ntpOn=!ntpOn;
+  document.getElementById('ntp-toggle').classList.toggle('on',ntpOn);
+  document.getElementById('ntp-lbl').textContent=ntpOn?'NTP 동기화 사용':'수동 시간 입력';
+  document.getElementById('ntp-server-field').style.display=ntpOn?'block':'none';
+  document.getElementById('manual-time-field').style.display=ntpOn?'none':'block';
+  if(!ntpOn){
+    var n=new Date(),p=function(v){return String(v).padStart(2,'0');};
+    document.getElementById('manual-time').value=n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(n.getDate())+'T'+p(n.getHours())+':'+p(n.getMinutes());
+  }
+}
+function applyNTP(){
+  var tz=document.getElementById('ntp-timezone').value;
+  showToast(ntpOn?'POST ~/system/ntp · NTP 저장 ('+tz+')':'POST ~/system/settime · 수동 시간 저장 ('+tz+')');
+}
+
+/* 전원 네트워크 */
+var pwrDhcp=false;
+function togglePowerDHCP(){
+  pwrDhcp=!pwrDhcp;
+  document.getElementById('pwr-dhcp-toggle').classList.toggle('on',pwrDhcp);
+  document.getElementById('pwr-dhcp-lbl').textContent=pwrDhcp?'DHCP 자동':'고정 IP';
+  ['pwr-ip','pwr-subnet','pwr-gw','pwr-dns1','pwr-dns2'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){el.disabled=pwrDhcp;el.style.opacity=pwrDhcp?'0.4':'1';}
+  });
+}
+function applyPowerNetwork(){ showToast('POST ~/power/network · 전원 관리 네트워크 저장'); }
+
+/* 전원 스케줄 */
+var schedOn=false;
+function toggleSchedule(){
+  schedOn=!schedOn;
+  document.getElementById('sched-toggle').classList.toggle('on',schedOn);
+  document.getElementById('sched-lbl').textContent=schedOn?'스케줄 사용 중':'스케줄 사용 안 함';
+  var f=document.getElementById('sched-fields');
+  f.style.opacity=schedOn?'1':'0.4';
+  f.style.pointerEvents=schedOn?'auto':'none';
+}
+function toggleDay(btn){
+  btn.classList.toggle('on');
+  updateDaysHint();
+}
+function toggleAllDays(){
+  var btns=document.querySelectorAll('.day-btn');
+  var anyOn=Array.from(btns).some(function(b){return b.classList.contains('on');});
+  btns.forEach(function(b){b.classList.toggle('on',!anyOn);});
+  updateDaysHint();
+}
+function updateDaysHint(){
+  var sel=getSelectedDays();
+  var hint=document.getElementById('days-hint');
+  if(hint) hint.textContent=sel===null?'선택 없음 = 매일 반복':'선택됨: '+sel.join(', ');
+}
+function getSelectedDays(){
+  var btns=document.querySelectorAll('.day-btn.on');
+  if(!btns.length) return null;
+  return Array.from(btns).map(function(b){return b.getAttribute('data-day');});
+}
+function applySchedule(){
+  var on=document.getElementById('sched-on').value;
+  var off=document.getElementById('sched-off').value;
+  var days=getSelectedDays();
+  var daysStr=days?days.join(', '):'매일 반복';
+  showToast('POST ~/power/schedule · ON '+on+' / OFF '+off+' / '+daysStr);
+}
+
+/* 저장소 */
+var storageData=[
+  {id:'ch1_nvme_1',channel:'ch1',name:'nvme0n1',transport:'nvme',rota:false,
+    mountpoint:'/data/ch1_nvme_1',filesystem:'ext4',state:'ready',
+    capacity:{total:2000000000000,used:300000000000,available:1700000000000}},
+  {id:'chhost_sata_1',channel:'chhost',name:'sda',transport:'sata',rota:true,
+    mountpoint:'/data/chhost_sata_1',filesystem:'ext4',state:'ready',primary:true,
+    capacity:{total:4000000000000,used:1200000000000,available:2800000000000}},
+  {id:'chhost_nvme_1',channel:'chhost',name:'nvme0n1',transport:'nvme',rota:false,
+    mountpoint:'/mnt/chhost_nvme_1',filesystem:'ext4',state:'formatting',formatpct:50,
+    capacity:{total:1000000000000}}
+];
+
+function fmtB(b){
+  if(!b)return '—';
+  if(b>=1e12)return (b/1e12).toFixed(1)+' TB';
+  if(b>=1e9)return (b/1e9).toFixed(0)+' GB';
+  return (b/1e6).toFixed(0)+' MB';
+}
+var STATE_LABEL={ready:'사용 가능',unformatted:'포맷 필요',formatting:'포맷 중',
+  unsupported_filesystem:'미지원 FS',unmounted:'마운트 안됨',error:'오류'};
+var STATE_CLS={ready:'stor-ready',formatting:'stor-formatting',
+  unformatted:'stor-error',error:'stor-error'};
+
+function renderStorage(){
+  var list=document.getElementById('stor-list'); if(!list) return;
+  var h='';
+  storageData.forEach(function(d,idx){
+    var cap=d.capacity||{};
+    var pct=cap.total&&cap.used?Math.round(cap.used/cap.total*100):0;
+    var barCls=pct>90?'danger':pct>70?'warn':'';
+    var chLbl=d.channel==='chhost'?'Scene':d.channel.toUpperCase();
+    var stCls=STATE_CLS[d.state]||'stor-error';
+    h+='<div class="stor-item">';
+    h+='<div class="stor-item-hd">';
+    h+='<span class="stor-badge '+stCls+'">'+(STATE_LABEL[d.state]||d.state)+'</span>';
+    if(d.primary) h+='<span class="stor-primary-badge">&#9733; 주 저장소</span>';
+    h+='<span class="stor-name">'+d.name+'</span>';
+    h+='<span style="font-size:10px;color:#aaa;padding:2px 6px;background:#f8fafc;border-radius:4px;">'+d.transport.toUpperCase()+(d.rota?' HDD':' SSD')+'</span>';
+    h+='</div>';
+    h+='<div class="stor-summary">';
+    h+='<span class="stor-tag">id: '+d.id+'</span>';
+    h+='<span class="stor-tag">avb: '+chLbl+'</span>';
+    h+='<span class="stor-tag">mountpoint: '+d.mountpoint+'</span>';
+    h+='<span class="stor-tag">uuid: '+(d.uuid||'—')+'</span>';
+    h+='</div>';
+    if(d.state==='formatting'){
+      var pf=d.formatpct||0;
+      h+='<div style="font-size:11px;color:#854d0e;margin:5px 0 2px;">&#9203; 포맷 진행 중 '+pf+'%</div>';
+      h+='<div class="stor-bar"><div class="stor-bar-fill warn" style="width:'+pf+'%;"></div></div>';
+    } else if(cap.total){
+      h+='<div class="stor-bar" style="margin-top:7px;"><div class="stor-bar-fill '+barCls+'" style="width:'+pct+'%;"></div></div>';
+      h+='<div class="stor-cap">'+fmtB(cap.used)+' / '+fmtB(cap.total)+' (여유 '+fmtB(cap.available)+')</div>';
+    }
+    h+='<div class="stor-detail" id="stor-detail-'+idx+'">';
+    h+='<table class="stor-detail-table">';
+    var rows=[
+      ['id',d.id],['avb',chLbl+' ('+d.channel+')'],['name',d.name],
+      ['transport',d.transport+(d.rota?' (HDD)':' (SSD)')],
+      ['device_path',d.device_path||''],['mountpoint',d.mountpoint||'(없음)'],
+      ['filesystem',d.filesystem||''],['uuid',d.uuid||''],['state',d.state],
+      ['primary',d.primary?'true':'false'],
+      ['capacity.total',fmtB(cap.total)],
+      ['capacity.used',fmtB(cap.used)],
+      ['capacity.available',fmtB(cap.available)]
+    ];
+    if(d.formatpct!==undefined) rows.push(['formatpct',d.formatpct+'%']);
+    rows.forEach(function(r){
+      h+='<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>';
+    });
+    h+='</table></div>';
+    h+='<div class="stor-actions">';
+    if(d.state==='ready'&&d.channel==='chhost'&&!d.primary)
+      h+='<button class="sys-btn sys-btn-gray" style="font-size:11px;padding:3px 10px;" onclick="setPrimary(storageData['+idx+'].id)">&#9733; 주 저장소 설정</button>';
+    h+='<button class="btn-detail" onclick="toggleDetail('+idx+')">&#9660; 상세정보 보기</button>';
+    if(d.state!=='formatting')
+      h+='<button class="sys-btn sys-btn-danger" style="font-size:11px;padding:3px 10px;" onclick="formatDisk(storageData['+idx+'].id)">'+(d.state==='unformatted'?'포맷':'재포맷')+'</button>';
+    h+='</div></div>';
+  });
+  list.innerHTML=h||'<div style="font-size:12px;color:#aaa;padding:8px;">저장소 없음</div>';
+}
+function toggleDetail(idx){
+  var el=document.getElementById('stor-detail-'+idx);
+  if(!el) return;
+  var show=el.classList.toggle('show');
+  var btn=el.previousElementSibling;
+  if(btn) btn.textContent=show?'▴ 상세정보 닫기':'▾ 상세정보 보기';
+}
+function refreshStorage(){ showToast('GET ~/storage · 저장소 목록 새로고침'); renderStorage(); }
+function setPrimary(id){
+  storageData.forEach(function(d){d.primary=(d.id===id);});
+  renderStorage();
+  showToast('POST ~/storage/primary · 주 저장소: '+id);
+}
+function formatDisk(id){
+  if(!confirm('저장소 ['+id+']를 포맷하시겠습니까? 기존 데이터가 모두 삭제됩니다.')) return;
+  var d=storageData.find(function(x){return x.id===id;});
+  if(d){d.state='formatting';d.formatpct=0;}
+  renderStorage();
+  showToast('POST ~/storage/format · 포맷 시작: '+id);
+}
+
+/* 재부팅 */
+function confirmReboot(){
+  if(!confirm('장비를 재부팅하시겠습니까? 진행 중인 녹화/스트리밍이 중단됩니다.')) return;
+  showToast('POST ~/system/reboot · 재부팅 요청 전송');
+}
+
+window.onload=function(){ renderStorage(); };
+
+/* ── 운영 정책 ── */
+
+
+/* ── 운영 정책 ── */
+var autoDelOn=false, schedDelOn=false, rtDelOn=false;
+function toggleAutoDel(){
+  autoDelOn=!autoDelOn;
+  var btn=document.getElementById('auto-del-master');
+  if(btn) btn.classList.toggle('on', autoDelOn);
+  document.getElementById('auto-del-lbl').textContent = autoDelOn?'자동 삭제 사용 중':'자동 삭제 사용 안 함';
+  var opts=document.getElementById('auto-del-options');
+  if(opts){opts.style.opacity=autoDelOn?'1':'0.4';opts.style.pointerEvents=autoDelOn?'auto':'none';}
+  showToast && showToast('자동 삭제 '+(autoDelOn?'활성화':'비활성화'));
+}
+function toggleSubDel(type){
+  var isSched=type==='sched';
+  if(isSched) schedDelOn=!schedDelOn;
+  else rtDelOn=!rtDelOn;
+  // 최소 1개 강제
+  if(!schedDelOn&&!rtDelOn){
+    if(isSched) schedDelOn=true; else rtDelOn=true;
+    showToast && showToast('⚠ 하나 이상 선택해야 합니다.');
+    return;
+  }
+  var sid=document.getElementById('sched-del-toggle');
+  var rid=document.getElementById('rt-del-toggle');
+  if(sid) sid.classList.toggle('on', schedDelOn);
+  if(rid) rid.classList.toggle('on', rtDelOn);
+  document.getElementById('sched-del-lbl').textContent=schedDelOn?'사용 중':'사용 안 함';
+  document.getElementById('rt-del-lbl').textContent=rtDelOn?'사용 중':'사용 안 함';
+  var sf=document.getElementById('sched-del-fields');
+  var rf=document.getElementById('rt-del-fields');
+  if(sf){sf.style.opacity=schedDelOn?'1':'0.4';sf.style.pointerEvents=schedDelOn?'auto':'none';}
+  if(rf){rf.style.opacity=rtDelOn?'1':'0.4';rf.style.pointerEvents=rtDelOn?'auto':'none';}
+}
+function savePolicyAll(){
+  var autoOn = document.getElementById('auto-del-master').classList.contains('on');
+  var gb1 = document.getElementById('sched-del-gb').value;
+  var cycle = document.getElementById('sched-del-cycle').value;
+  var time = document.getElementById('sched-del-time').value;
+  var gb2 = document.getElementById('rt-del-gb').value;
+  var ret = document.getElementById('retention-period').value;
+  showToast && showToast('운영 정책 저장 완료 · 자동삭제:'+(autoOn?'ON':'OFF')+' 스케줄:'+gb1+'GB 실시간:'+gb2+'GB 이력:'+(ret==='0'?'무제한':ret+'개월'));
+}
+function saveSchedDel(){
+  var on = document.getElementById('sched-del-toggle').checked;
+  var gb = document.getElementById('sched-del-gb').value;
+  var cycle = document.getElementById('sched-del-cycle').value;
+  var time = document.getElementById('sched-del-time').value;
+  showToast && showToast('운영 정책 저장 · scheduled_maxstoragefree_gb:'+(on?gb:'off')+' '+cycle+' '+time);
+}
+function saveRtDel(){
+  var on = document.getElementById('rt-del-toggle').checked;
+  var gb = document.getElementById('rt-del-gb').value;
+  showToast && showToast('운영 정책 저장 · realtime_maxstoragefree_gb:'+(on?gb:'off'));
+}
+function saveRetention(){
+  var v = document.getElementById('retention-period').value;
+  showToast && showToast('운영 정책 저장 · 이력 보관: '+(v==='0'?'무제한':v+'개월'));
+}
+
+</script>
+</body>
+</html>

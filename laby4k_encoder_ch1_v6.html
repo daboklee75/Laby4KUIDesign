@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LABY-4K 인코딩 및 프로파일 v5</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px;color:#1a1a1a;}
+.wrap{border:1px solid #ddd;border-radius:12px;overflow:hidden;background:#fff;max-width:1280px;margin:0 auto;}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #eee;}
+.layout{display:flex;}
+.gnb{width:170px;flex-shrink:0;border-right:1px solid #eee;padding:10px 7px;display:flex;flex-direction:column;gap:2px;}
+.gi{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;font-size:12px;color:#666;}
+.gi.on{background:#f0f0f0;color:#1a1a1a;font-weight:500;}
+.gi.on .gi-icon{color:#1a1a1a;}
+.gi:hover .gi-icon{color:#555;}
+.gd{height:1px;background:#eee;margin:5px 3px;}
+.main-content{flex:1;min-width:0;padding:14px 15px;}
+.ptitle{font-size:15px;font-weight:500;margin:0 0 12px;}
+.tabs{display:flex;border-bottom:1px solid #eee;margin-bottom:14px;}
+.tab{padding:7px 13px;font-size:13px;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;}
+.tab.on{color:#1a1a1a;font-weight:500;border-bottom-color:#1a1a1a;}
+.sec{border:1px solid #eee;border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.sec-hd{display:flex;align-items:center;gap:7px;padding:8px 13px;background:#f8f8f8;border-bottom:1px solid #eee;}
+.sec-title{font-size:12px;font-weight:500;color:#555;}
+.rtbdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.don{background:#22c55e;}.doff{background:#d1d5db;}.derr{background:#ef4444;}
+.status-err{font-size:11px;color:#ef4444;font-weight:500;}
+
+/* ── 전채널 상태 패널 ── */
+.status-panel{margin-bottom:10px;border:1px solid #eee;border-radius:10px;overflow:hidden;}
+.status-panel-hd{display:flex;align-items:center;gap:7px;padding:8px 13px;background:#f8f8f8;border-bottom:1px solid #eee;}
+.status-edit-btn{width:26px;height:26px;border-radius:6px;border:1px solid #fdba74;background:#fff;color:#f97316;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.status-edit-btn:hover{background:#fff7ed;}
+.status-edit-btn.on{background:#f97316;color:#fff;border-color:#f97316;}
+.status-tbl{width:100%;border-collapse:separate;border-spacing:0;}
+.status-tbl thead th{font-size:11px;font-weight:500;color:#aaa;padding:6px 10px;border-bottom:1px solid #eee;text-align:center;background:#fafafa;}
+.status-tbl thead th.ch-col{text-align:left;width:64px;}
+.status-tbl thead th.stream-hd{width:220px;}
+.status-tbl tbody td{padding:6px 10px;border-bottom:1px solid #f4f4f4;vertical-align:middle;}
+.status-tbl tbody tr:last-child td{border-bottom:none;}
+.status-tbl tbody tr:hover{background:#fafafa;cursor:pointer;}
+.ch-label{font-size:12px;font-weight:500;color:#333;}
+.stream-cell{display:flex;align-items:center;gap:8px;justify-content:center;}
+.stream-name{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;min-width:36px;text-align:center;color:#fff;}
+.sn-main{background:#1e293b;}
+.sn-sub{background:#475569;}
+.sn-prev{background:#94a3b8;}
+.bps-val{font-size:11px;font-variant-numeric:tabular-nums;min-width:62px;}
+.bps-on{color:#22c55e;font-weight:500;}
+.bps-off{color:#d1d5db;}
+.bps-err{color:#ef4444;font-weight:500;}
+
+/* 토글 작은 버전 */
+.toggle-sm{position:relative;display:inline-block;width:28px;height:15px;flex-shrink:0;}
+.toggle-sm input{opacity:0;width:0;height:0;}
+.tsl-sm{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ddd;border-radius:15px;transition:.2s;}
+.tsl-sm:before{position:absolute;content:"";height:11px;width:11px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s;}
+input:checked+.tsl-sm{background:#22c55e;}
+input:checked+.tsl-sm:before{transform:translateX(13px);}
+
+/* 토글 일반 */
+.toggle{position:relative;display:inline-block;width:34px;height:18px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.tslider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ddd;border-radius:18px;transition:.2s;}
+.tslider:before{position:absolute;content:"";height:14px;width:14px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s;}
+input:checked+.tslider{background:#22c55e;}
+input:checked+.tslider:before{transform:translateX(16px);}
+
+/* 프로파일 */
+.profile-area{padding:12px 14px;border-bottom:1px solid #eee;background:#fafafa;}
+.profile-area-label{font-size:11px;font-weight:500;color:#aaa;letter-spacing:0.3px;margin-bottom:10px;}
+.profile-cards{display:flex;gap:8px;flex-wrap:wrap;}
+.profile-card{flex:1;min-width:190px;max-width:260px;border:1.5px solid #eee;border-radius:8px;padding:10px 12px;cursor:pointer;background:#fff;transition:all 0.15s;position:relative;}
+.profile-card:hover{border-color:#93c5fd;background:#f8fbff;}
+.profile-card.active{border-color:#1d4ed8;background:#eff6ff;}
+.profile-card.selected-pending{border-color:#f59e0b;background:#fffbf0;}
+.profile-card-name{font-size:12px;font-weight:500;color:#1a1a1a;margin-bottom:5px;}
+.profile-card-streams{display:flex;flex-direction:column;gap:2px;}
+.stream-line{font-size:11px;color:#555;display:flex;gap:5px;}
+.stream-key{color:#aaa;width:32px;flex-shrink:0;}
+.active-badge{position:absolute;top:8px;right:8px;font-size:10px;padding:2px 7px;border-radius:4px;background:#1d4ed8;color:#fff;font-weight:500;}
+.pending-badge{position:absolute;top:8px;right:8px;font-size:10px;padding:2px 7px;border-radius:4px;background:#f59e0b;color:#fff;font-weight:500;}
+.apply-pending{display:none;align-items:center;gap:10px;padding:8px 12px;background:#fffbf0;border:1px solid #fde68a;border-radius:7px;margin-top:10px;}
+.apply-pending.show{display:flex;}
+.apply-pending-text{flex:1;font-size:12px;color:#92400e;}
+.apply-confirm-btn{padding:5px 14px;font-size:12px;font-weight:500;border:1px solid #d97706;border-radius:6px;background:#f59e0b;color:#fff;cursor:pointer;white-space:nowrap;}
+.apply-cancel-btn{padding:5px 10px;font-size:12px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#666;}
+
+/* 인코더 테이블 */
+.enc-table{width:100%;border-collapse:separate;border-spacing:0;}
+.enc-table thead th{font-size:11px;font-weight:500;color:#aaa;padding:6px 9px;border-bottom:1px solid #eee;text-align:left;white-space:nowrap;background:#fafafa;}
+.enc-table tbody td{padding:6px 9px;border-bottom:1px solid #f4f4f4;vertical-align:middle;}
+.enc-table tbody tr.detail-row>td{padding:0;border-bottom:1px solid #eee;background:#f8fbff;}
+.enc-table tbody tr:last-child td{border-bottom:none;}
+.stream-badge{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:5px;letter-spacing:0.3px;min-width:42px;text-align:center;}
+.badge-main{background:#1e293b;color:#fff;}
+.badge-sub{background:#475569;color:#fff;}
+.badge-prev{background:#94a3b8;color:#fff;}
+.enc-table tbody tr.row-modified{background:#fffbf0;}
+.modified-dot{display:none;width:6px;height:6px;border-radius:50%;background:#f59e0b;flex-shrink:0;}
+.row-modified .modified-dot{display:inline-block;}
+.status-bps{font-size:11px;color:#22c55e;font-variant-numeric:tabular-nums;font-weight:500;}
+.status-idle{font-size:11px;color:#aaa;}
+.bps-cell{display:flex;flex-direction:column;gap:2px;}
+.bps-set{font-size:12px;color:#333;}
+.bps-live{font-size:10px;color:#22c55e;font-variant-numeric:tabular-nums;}
+.bps-live.idle{color:#aaa;}
+select{padding:3px 6px;border:1px solid #ddd;border-radius:5px;font-size:12px;background:#fff;}
+.cell-select{padding:3px 6px;border:1px solid #ddd;border-radius:5px;font-size:12px;background:#fff;width:100%;}
+.cell-input{padding:3px 5px;border:1px solid #ddd;border-radius:5px;font-size:12px;background:#fff;text-align:right;}
+.codec-btns{display:flex;gap:4px;}
+.cdbtn{padding:3px 9px;font-size:11px;border:1px solid #ddd;border-radius:5px;cursor:pointer;color:#666;background:#fff;}
+.cdbtn.on{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
+.stream-actions{display:flex;align-items:center;gap:5px;justify-content:flex-end;}
+.expand-btn{padding:3px 8px;font-size:11px;border:1px solid #ddd;border-radius:5px;cursor:pointer;color:#666;background:#fff;white-space:nowrap;}
+.expand-btn.open{background:#f0f0f0;border-color:#ccc;}
+.stream-apply-btn{padding:3px 10px;font-size:11px;border:1px solid #16a34a;border-radius:5px;cursor:pointer;color:#16a34a;background:#f0fdf4;white-space:nowrap;display:none;}
+.stream-apply-btn.visible{display:inline-block;}
+
+/* Crop 버튼 */
+.crop-btn{padding:3px 9px;font-size:11px;border:1px solid #ddd;border-radius:5px;cursor:pointer;color:#666;background:#fff;white-space:nowrap;min-width:58px;text-align:center;}
+.crop-btn.active{border-color:#f59e0b;color:#b45309;background:#fffbeb;font-weight:500;}
+
+/* 크롭 모달 */
+.crop-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
+.crop-modal-overlay.show{display:flex;}
+.crop-modal{background:#fff;border-radius:14px;padding:0;width:640px;max-width:95vw;box-shadow:0 24px 80px rgba(0,0,0,0.25);overflow:hidden;}
+.crop-modal-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #eee;background:#fafafa;}
+.crop-modal-title{font-size:14px;font-weight:500;}
+.crop-modal-close{font-size:18px;cursor:pointer;color:#aaa;background:none;border:none;padding:0 4px;line-height:1;}
+.crop-modal-body{padding:18px;}
+.crop-modal-preview{width:100%;aspect-ratio:16/9;background:#1a1a2e;border-radius:10px;position:relative;overflow:hidden;margin-bottom:16px;}
+.crop-modal-ov-top   {position:absolute;top:0;left:0;right:0;background:rgba(239,68,68,0.4);pointer-events:none;transition:height 0.1s;}
+.crop-modal-ov-bottom{position:absolute;bottom:0;left:0;right:0;background:rgba(239,68,68,0.4);pointer-events:none;transition:height 0.1s;}
+.crop-modal-ov-left  {position:absolute;top:0;bottom:0;left:0;background:rgba(239,68,68,0.4);pointer-events:none;transition:width 0.1s;}
+.crop-modal-ov-right {position:absolute;top:0;bottom:0;right:0;background:rgba(239,68,68,0.4);pointer-events:none;transition:width 0.1s;}
+.crop-modal-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;}
+.crop-modal-res{font-size:13px;color:rgba(255,255,255,0.85);font-weight:500;}
+.crop-modal-res-orig{font-size:11px;color:rgba(255,255,255,0.45);}
+.crop-modal-controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.crop-ctrl{display:flex;flex-direction:column;gap:5px;}
+.crop-ctrl-label{font-size:12px;color:#555;font-weight:500;}
+.crop-ctrl-row{display:flex;align-items:center;gap:8px;}
+.crop-ctrl-row input[type=range]{flex:1;height:2px;-webkit-appearance:none;appearance:none;border-radius:2px;background:#ddd;outline:none;cursor:pointer;}
+.crop-ctrl-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#f59e0b;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+.crop-ctrl-num{width:52px;padding:4px 6px;border:1px solid #ddd;border-radius:6px;font-size:13px;text-align:right;}
+.crop-ctrl-unit{font-size:12px;color:#aaa;width:16px;}
+.crop-modal-ft{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-top:1px solid #eee;background:#fafafa;}
+.crop-en-row{display:flex;align-items:center;gap:8px;font-size:13px;color:#555;}
+.crop-modal-actions{display:flex;gap:8px;}
+.crop-modal-cancel{padding:6px 14px;font-size:13px;border:1px solid #ddd;border-radius:7px;background:#fff;cursor:pointer;color:#555;}
+.crop-modal-apply{padding:6px 16px;font-size:13px;font-weight:500;border:1px solid #f59e0b;border-radius:7px;background:#f59e0b;color:#fff;cursor:pointer;}
+.crop-modal-apply:hover{background:#d97706;}
+
+/* 상세 패널 */
+.detail-panel{padding:12px 14px;}
+.dp-section{margin-bottom:10px;}.dp-section:last-child{margin-bottom:0;}
+.dp-section-title{font-size:10px;font-weight:600;color:#aaa;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;}
+.dp-grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.dp-grid6{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+.dp-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.dp-group{display:flex;flex-direction:column;gap:4px;}
+.dp-label{font-size:11px;color:#aaa;}
+.dp-divider{height:1px;background:#e8eef5;margin:10px 0;}
+
+/* RTSP / WebRTC URL 뱃지 */
+.stream-url-group{display:flex;flex-direction:column;gap:3px;}
+.url-badge{display:inline-block;font-size:10px;padding:2px 6px;border-radius:4px;cursor:pointer;white-space:nowrap;transition:opacity 0.1s;}
+.url-badge:hover{opacity:0.75;}
+.rtsp-badge{background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;}
+.webrtc-badge{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}
+.url-badge.copied{background:#1e293b;color:#fff;border-color:#1e293b;}
+
+/* 코덱 텍스트 */
+.codec-text{font-size:12px;font-weight:500;color:#334155;}
+.crop-section{display:flex;align-items:flex-start;gap:16px;}
+.crop-preview-wrap{flex-shrink:0;}
+.crop-preview{width:160px;height:90px;position:relative;background:#1a1a2e;border-radius:5px;overflow:hidden;}
+.crop-overlay-top   {position:absolute;top:0;left:0;right:0;background:rgba(239,68,68,0.45);pointer-events:none;}
+.crop-overlay-bottom{position:absolute;bottom:0;left:0;right:0;background:rgba(239,68,68,0.45);pointer-events:none;}
+.crop-overlay-left  {position:absolute;top:0;bottom:0;left:0;background:rgba(239,68,68,0.45);pointer-events:none;}
+.crop-overlay-right {position:absolute;top:0;bottom:0;right:0;background:rgba(239,68,68,0.45);pointer-events:none;}
+.crop-center-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,0.7);}
+.crop-inputs{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.crop-input-group{display:flex;flex-direction:column;gap:3px;}
+.crop-input-label{font-size:11px;color:#aaa;}
+.crop-input-row{display:flex;align-items:center;gap:5px;}
+.crop-num{width:52px;padding:3px 5px;border:1px solid #ddd;border-radius:5px;font-size:12px;text-align:right;}
+.crop-unit{font-size:11px;color:#aaa;}
+.crop-toggle-row{display:flex;align-items:center;gap:7px;margin-bottom:8px;}
+.crop-toggle-label{font-size:12px;color:#555;font-weight:500;}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:2px;border-radius:2px;background:#ddd;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;border-radius:50%;background:#555;cursor:pointer;border:none;}
+input[type=range]:hover::-webkit-slider-thumb{background:#1a1a1a;}
+.sl-row{display:flex;align-items:center;gap:5px;}
+.sl-val{font-size:11px;width:26px;text-align:right;color:#555;}
+.vepu-bar-wrap{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid #eee;background:#fafafa;}
+.vepu-label{font-size:11px;color:#666;white-space:nowrap;}
+.vepu-track{flex:1;height:8px;background:#eee;border-radius:3px;overflow:hidden;}
+.vepu-fill{height:100%;border-radius:3px;}
+.vepu-val{font-size:11px;color:#555;white-space:nowrap;}
+
+/* 모달 */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:#fff;border-radius:12px;padding:24px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
+.modal-title{font-size:15px;font-weight:500;margin-bottom:8px;}
+.modal-body{font-size:13px;color:#555;line-height:1.6;margin-bottom:16px;}
+.modal-profile-name{font-weight:600;color:#1d4ed8;}
+.modal-streams{background:#f8f8f8;border-radius:7px;padding:10px 12px;margin:10px 0;font-size:12px;color:#444;line-height:1.8;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;}
+.modal-btn-cancel{padding:7px 16px;font-size:13px;border:1px solid #ddd;border-radius:7px;background:#fff;cursor:pointer;color:#555;}
+.modal-btn-apply{padding:7px 16px;font-size:13px;font-weight:500;border:1px solid #1d4ed8;border-radius:7px;background:#1d4ed8;color:#fff;cursor:pointer;}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;display:none;z-index:999;white-space:nowrap;}
+
+/* 아이콘 크기 통일 */
+.gi-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;flex-shrink:0;color:#888;}
+.sec-icon{display:inline-block;width:16px;text-align:center;font-size:13px;flex-shrink:0;line-height:1;}
+
+
+
+
+/* 녹화 상태 바 */
+.rec-bar{display:flex;align-items:center;gap:10px;padding:7px 16px;background:#1a1a1a;border-bottom:1px solid #333;}
+.rec-idle-lbl{font-size:12px;color:#888;}
+.rec-sp{flex:1;}
+.btn-rec-test{padding:4px 14px;font-size:12px;font-weight:500;border:1px solid #22c55e;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;cursor:pointer;}
+.rec-dot-r{width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0;animation:recblink 1.2s infinite;}
+@keyframes recblink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.rec-lbl{font-size:12px;font-weight:600;color:#ef4444;}
+.rec-div{width:1px;height:14px;background:#444;flex-shrink:0;}
+.rec-chs{font-size:12px;color:#fff;font-weight:500;}
+.rec-tlbl{font-size:11px;color:#888;}
+.rec-tval{font-size:12px;color:#d1d5db;font-variant-numeric:tabular-nums;font-family:monospace;}
+.rec-elapsed{font-size:13px;color:#fff;font-variant-numeric:tabular-nums;font-family:monospace;font-weight:500;}
+.rec-stop{padding:4px 14px;font-size:12px;font-weight:500;border:1px solid #ef4444;border-radius:6px;background:rgba(239,68,68,0.15);color:#ef4444;cursor:pointer;}
+/* 커스텀 프로파일 카드 */
+.custom-card{border-style:dashed;border-color:#c4b5fd;}
+.custom-card.active{border-color:#7c3aed;background:linear-gradient(135deg,#f5f3ff,#ede9fe);}
+/* 읽기 전용 상태 */
+.field-readonly{pointer-events:none;opacity:0.45;user-select:none;}
+.field-readonly select,.field-readonly input{background:#f8fafc;cursor:not-allowed;}
+.readonly-notice{font-size:11px;color:#94a3b8;padding:6px 0 2px;display:none;}
+.readonly-notice.show{display:block;}
+.preset-dropdown{position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1.5px solid #c4b5fd;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.12);z-index:50;min-width:220px;padding:4px;display:none;}
+.preset-dropdown.show{display:block;}
+.preset-opt{padding:8px 12px;font-size:12px;border-radius:6px;cursor:pointer;color:#374151;}
+.preset-opt:hover{background:#f5f3ff;color:#7c3aed;}
+.preset-opt-name{font-weight:500;}
+.preset-opt-desc{font-size:10px;color:#aaa;margin-top:1px;}
+.preset-trigger-wrap{position:relative;display:inline-block;}
+/* 자동 정지 설정 */</style>
+</head>
+<body>
+<div style="background:#1e293b;color:#94a3b8;font-size:10px;text-align:right;padding:3px 14px;letter-spacing:0.5px;">
+  화면설계서 <strong style="color:#e2e8f0;">ver 14</strong> &nbsp;·&nbsp; LABY-4K LabyConfig4K &nbsp;·&nbsp; 2026-08-06
+</div>
+
+<script>
+function identifyDevice(){
+  var btn = document.getElementById('identify-btn');
+  if(!btn || btn.disabled) return;
+  btn.disabled = true;
+  showToast('POST ~/api/v1/system/identify · 장비 램프 점등');
+  var remain = 5;
+  btn.textContent = '🔦 램프 점등 중... ('+remain+'초)';
+  var timer = setInterval(function(){
+    remain -= 1;
+    if(remain <= 0){
+      clearInterval(timer);
+      btn.textContent = '🔦 녹화기 확인';
+      btn.disabled = false;
+      return;
+    }
+    btn.textContent = '🔦 램프 점등 중... ('+remain+'초)';
+  }, 1000);
+}
+
+
+/* ── 자동 정지 설정 ── */
+function toggleMaxDur(on){
+  document.getElementById('maxdur-lbl').textContent = on ? '사용 중' : '사용 안 함';
+  var f = document.getElementById('maxdur-fields');
+  f.style.opacity = on ? '1' : '0.4';
+  f.style.pointerEvents = on ? 'auto' : 'none';
+}
+function updateMaxDurSec(){
+  var h = parseInt(document.getElementById('maxdur-h').value)||0;
+  var m = parseInt(document.getElementById('maxdur-m').value)||0;
+  var sec = h*3600 + m*60;
+  var hint = document.getElementById('maxdur-sec-hint');
+  var warn = document.getElementById('maxdur-warn');
+  if(hint) hint.textContent = '= '+sec.toLocaleString()+'초 (maxdurationsec)';
+  if(warn) warn.classList.toggle('show', sec > 0 && sec < 1800);
+}
+function saveMaxDur(){
+  var on = document.getElementById('maxdur-toggle').checked;
+  var h = parseInt(document.getElementById('maxdur-h').value)||0;
+  var m = parseInt(document.getElementById('maxdur-m').value)||0;
+  var sec = h*3600 + m*60;
+  showToast && showToast('PATCH encoderpreset · maxdurationsec: '+(on?sec:'disabled'));
+}
+function toggleMinStorage(on){
+  document.getElementById('minstorage-lbl').textContent = on ? '사용 중' : '사용 안 함';
+  var f = document.getElementById('minstorage-fields');
+  f.style.opacity = on ? '1' : '0.4';
+  f.style.pointerEvents = on ? 'auto' : 'none';
+  if(on) document.getElementById('storage-free-now').textContent = '1.7 TB';
+}
+function saveMinStorage(){
+  var on = document.getElementById('minstorage-toggle').checked;
+  var val = document.getElementById('minstorage-val').value;
+  showToast && showToast('PATCH encoderpreset · max_storage_free: '+(on?val+'GB':'disabled'));
+}
+
+// 전채널 스트림 상태 데이터 (샘플 — CH2 sub OFF)
+var streamState = {
+  ch1:{ main:{on:true, state:'encoding',bps:24.8}, sub:{on:false,state:'error',bps:0},    prev:{on:false,state:'idle',bps:0}   },
+  ch2:{ main:{on:true, state:'encoding',bps:11.2}, sub:{on:false,state:'idle', bps:0},    prev:{on:true, state:'encoding',bps:1.8} },
+  ch3:{ main:{on:false,state:'idle',    bps:0},    sub:{on:false,state:'idle', bps:0},    prev:{on:false,state:'idle',bps:0}   },
+  ch4:{ main:{on:false,state:'idle',    bps:0},    sub:{on:false,state:'idle', bps:0},    prev:{on:false,state:'idle',bps:0}   },
+  host:{ main:{on:true,state:'encoding',bps:8.4},  sub:{on:true, state:'encoding',bps:3.9}, prev:{on:true,state:'encoding',bps:1.7} }
+};
+var chLabels = {ch1:'CH1',ch2:'CH2',ch3:'CH3',ch4:'CH4',host:'Scene'};
+
+var statusEditMode = false;
+function toggleStatusEditMode(){
+  statusEditMode = !statusEditMode;
+  var btn = document.getElementById('status-edit-btn');
+  btn.textContent = statusEditMode ? '✓' : '✏️';
+  btn.classList.toggle('on', statusEditMode);
+  btn.title = statusEditMode ? '편집 완료' : '스트림 on/off 편집';
+  renderStatusPanel();
+}
+
+function toggleStream(ch, stream, checkbox) {
+  var newState = checkbox.checked ? 'encoding' : 'idle';
+  streamState[ch][stream].on    = checkbox.checked;
+  streamState[ch][stream].state = newState;
+  renderStatusPanel();
+  if(ch==='ch1') setStreamState(stream, newState);
+  showToast(chLabels[ch]+' '+stream+' '+(checkbox.checked?'ON':'OFF'));
+}
+
+function renderStatusPanel() {
+  var tbody = document.getElementById('status-tbody');
+  tbody.innerHTML = '';
+  Object.keys(streamState).forEach(function(ch) {
+    var s = streamState[ch];
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td><span class="ch-label">'+chLabels[ch]+'</span></td>' +
+      streamCell(ch,'main',s.main) +
+      streamCell(ch,'sub',s.sub) +
+      streamCell(ch,'prev',s.prev);
+    tbody.appendChild(tr);
+  });
+}
+
+function streamCell(ch, stream, st) {
+  var checked = st.on ? 'checked' : '';
+  var state   = st.state || (st.on ? 'encoding' : 'idle');
+  var dotMap  = {encoding:'don', idle:'doff', error:'derr'};
+  var dotCls  = 'dot ' + (dotMap[state] || 'doff');
+  var bpsText = (state === 'encoding' && st.bps > 0) ? st.bps.toFixed(1)+' Mbps' : '—';
+  var bpsCls  = state === 'encoding' ? 'bps-val bps-on' : (state === 'error' ? 'bps-val bps-err' : 'bps-val bps-off');
+  var toggleHtml = statusEditMode
+    ? '<label class="toggle-sm"><input type="checkbox" '+checked+' onchange="toggleStream(\''+ch+'\',\''+stream+'\',this)"><span class="tsl-sm"></span></label>'
+    : '';
+  return '<td><div class="stream-cell">' +
+    toggleHtml +
+    '<span class="'+dotCls+'" id="sdot-'+ch+'-'+stream+'"></span>' +
+    '<span class="'+bpsCls+'" id="sbps-'+ch+'-'+stream+'">'+bpsText+'</span>' +
+    '</div></td>';
+}
+
+// 프로파일
+var profiles = {
+  uhd_fhd:{name:'초고화질 (UHD/FHD)',streams:{main:'FHD 1920×1080 · H.265 · 25Mbps · 60fps',sub:'UHD 3840×2160 · H.265 · 50Mbps · 30fps',prev:'HD 1280×720 · H.264 · 2Mbps · 30fps'}},
+  fhd_hd: {name:'인터넷서비스용 (FHD/HD)',streams:{main:'FHD 1920×1080 · H.264 · 12Mbps · 30fps',sub:'HD 1280×720 · H.264 · 4Mbps · 30fps',prev:'HD 1280×720 · H.264 · 2Mbps · 30fps'}},
+  temp_fhd:{name:'임시서비스용 (FHD/HD)',streams:{main:'FHD 1920×1080 · H.264 · 8Mbps · 30fps',sub:'HD 1280×720 · H.264 · 2Mbps · 30fps',prev:'480p · H.264 · 1Mbps · 15fps'}}
+,
+  custom:   {name:'커스텀',streams:{main:'FHD 1920×1080 · H.264 · 10Mbps · 30fps',sub:'HD 1280×720 · H.264 · 4Mbps · 30fps',prev:'HD 1280×720 · H.264 · 2Mbps · 30fps'}, editable:true}
+};
+var currentProfileKey='uhd_fhd', pendingProfileKey='';
+
+
+// 내장 프로파일 선택 시 편집 항목 비활성화 (Crop 제외)
+function setProfileReadonly(isReadonly){
+  var panels = document.querySelectorAll('.detail-panel');
+  panels.forEach(function(panel){
+    // dp-section 단위로 처리
+    var sections = panel.querySelectorAll('.dp-section');
+    sections.forEach(function(sec){
+      // crop-section은 항상 편집 가능
+      if(sec.classList.contains('crop-section') ||
+         sec.querySelector('.crop-section')) return;
+      var title = sec.querySelector('.dp-section-title');
+      if(title && title.textContent.includes('Crop')) return;
+      // 나머지 섹션 비활성화
+      var inputs = sec.querySelectorAll('input:not([type=range]):not([type=color]), select');
+      var ranges = sec.querySelectorAll('input[type=range]');
+      inputs.forEach(function(el){
+        el.disabled = isReadonly;
+        el.style.cursor = isReadonly ? 'not-allowed' : '';
+        el.style.opacity = isReadonly ? '0.5' : '';
+      });
+      ranges.forEach(function(el){
+        el.disabled = isReadonly;
+        el.style.opacity = isReadonly ? '0.5' : '';
+      });
+    });
+    // 테이블 행의 해상도/FPS/비트레이트 셀 (enc-table 내 input/select)
+    var tableInputs = panel.closest('.enc-table-wrap') ?
+      panel.closest('.enc-table-wrap').querySelectorAll('.res-input,.fps-input,.bit-input,.cell-select,.cell-input') : [];
+    tableInputs.forEach(function(el){ el.disabled = isReadonly; });
+  });
+  // 테이블 전체의 편집 셀도 처리
+  document.querySelectorAll('.enc-table .cell-input, .enc-table .cell-select').forEach(function(el){
+    el.disabled = isReadonly;
+    el.style.opacity = isReadonly ? '0.5' : '';
+    el.style.cursor = isReadonly ? 'not-allowed' : '';
+  });
+  // 읽기전용 안내
+  var notice = document.getElementById('readonly-notice');
+  if(notice) notice.classList.toggle('show', isReadonly);
+}
+
+function selectProfileCard(key){
+  if(key===currentProfileKey){pendingProfileKey='';renderCards();document.getElementById('applyPending').classList.remove('show');return;}
+  pendingProfileKey=key;renderCards();
+  document.getElementById('pendingName').textContent='"'+profiles[key].name+'"';
+  document.getElementById('applyPending').classList.add('show');
+  // 커스텀이 아니면 편집 비활성화
+  var isBuiltin = (key !== 'custom');
+  setProfileReadonly(isBuiltin);
+  // 프리셋 불러오기 바 표시
+  var pBar = document.getElementById('preset-bar');
+  if(pBar) pBar.style.display = isBuiltin ? 'none' : 'block';
+}
+function renderCards(){
+  Object.keys(profiles).forEach(function(k){
+    var card=document.getElementById('card-'+k); if(!card)return;
+    card.classList.remove('active','selected-pending');
+    var b=card.querySelector('.card-badge'); if(b)b.remove();
+    if(k===currentProfileKey){card.classList.add('active');var el=document.createElement('span');el.className='active-badge card-badge';el.textContent='현재 적용';card.appendChild(el);}
+    else if(k===pendingProfileKey){card.classList.add('selected-pending');var el2=document.createElement('span');el2.className='pending-badge card-badge';el2.textContent='선택됨';card.appendChild(el2);}
+  });
+}
+function showConfirmModal(){
+  if(!pendingProfileKey)return;
+  var p=profiles[pendingProfileKey];
+  document.getElementById('modalProfileName').textContent=p.name;
+  document.getElementById('modalStreams').innerHTML='<b>main</b> '+p.streams.main+'<br><b>sub&nbsp;&nbsp;</b> '+p.streams.sub+'<br><b>prev&nbsp;</b> '+p.streams.prev;
+  document.getElementById('confirmModal').classList.add('show');
+}
+function confirmApply(){
+  document.getElementById('confirmModal').classList.remove('show');
+  currentProfileKey=pendingProfileKey;pendingProfileKey='';renderCards();
+  document.getElementById('applyPending').classList.remove('show');
+  showToast('프로파일이 적용되었습니다');
+}
+function cancelModal(){document.getElementById('confirmModal').classList.remove('show');}
+function cancelPending(){pendingProfileKey='';renderCards();document.getElementById('applyPending').classList.remove('show');}
+
+function toggleCodec(btn,s){document.querySelectorAll('.cdbtn-'+s).forEach(function(b){b.classList.remove('on');});btn.classList.add('on');markModified(s);}
+function markModified(s){document.getElementById('row-'+s).classList.add('row-modified');document.getElementById('apply-'+s).classList.add('visible');}
+function clearModified(s){document.getElementById('row-'+s).classList.remove('row-modified');document.getElementById('apply-'+s).classList.remove('visible');}
+function applyStream(s){clearModified(s);showToast(s+' 스트림 설정 적용됨 (PATCH)');}
+
+/* 커스텀 프리셋 로드용 데이터 */
+var presetData = {
+  uhd_fhd:{
+    main:{res:'1920×1080',fps:'60',bps:25000,codec:'H.265',profile:'Main',level:'auto',tier:'Main',rc:'CBR',gop:1},
+    sub: {res:'3840×2160',fps:'30',bps:50000,codec:'H.265',profile:'Main',level:'auto',tier:'Main',rc:'CBR',gop:1},
+    prev:{res:'1280×720', fps:'30',bps:2000, codec:'H.264',profile:'Main',level:'4.0',tier:'Main',rc:'CBR',gop:1}
+  },
+  fhd_hd:{
+    main:{res:'1920×1080',fps:'30',bps:12000,codec:'H.264',profile:'High',level:'4.1',tier:'Main',rc:'CBR',gop:2},
+    sub: {res:'1280×720', fps:'30',bps:4000, codec:'H.264',profile:'Main',level:'4.0',tier:'Main',rc:'CBR',gop:2},
+    prev:{res:'1280×720', fps:'30',bps:2000, codec:'H.264',profile:'Main',level:'4.0',tier:'Main',rc:'CBR',gop:2}
+  },
+  temp_fhd:{
+    main:{res:'1920×1080',fps:'30',bps:8000, codec:'H.264',profile:'Baseline',level:'4.0',tier:'Main',rc:'CBR',gop:2},
+    sub: {res:'1280×720', fps:'30',bps:2000, codec:'H.264',profile:'Main',level:'4.0',tier:'Main',rc:'CBR',gop:2},
+    prev:{res:'854×480',  fps:'15',bps:1000, codec:'H.264',profile:'Baseline',level:'3.1',tier:'Main',rc:'CBR',gop:2}
+  }
+};
+
+function loadPreset(presetKey){
+  if(!presetKey) return;
+  var p = presetData[presetKey];
+  if(!p){ showToast('프리셋을 찾을 수 없습니다'); return; }
+  ['main','sub','prev'].forEach(function(s){
+    var d=p[s]; if(!d) return;
+    function sv(id,val){var el=document.getElementById(id);if(el){
+      // select: option 중 일치 찾기
+      if(el.tagName==='SELECT'){
+        for(var i=0;i<el.options.length;i++){
+          if(el.options[i].value===String(val)||el.options[i].text===String(val)){el.selectedIndex=i;break;}
+        }
+      } else { el.value=val; }
+    }}
+    sv(s+'-res', d.res);
+    sv(s+'-fps', d.fps);
+    sv(s+'-bps-set', d.bps);
+    sv(s+'-codec', d.codec);
+    sv(s+'-profile-v', d.profile);
+    sv(s+'-level', d.level);
+    sv(s+'-tier', d.tier);
+    sv(s+'-rc', d.rc);
+    sv(s+'-gop', d.gop);
+    var gopVal=document.getElementById(s+'-gop-val');
+    if(gopVal) gopVal.textContent=d.gop+'s';
+    // 코덱 텍스트 업데이트
+    if(typeof updateCodecText==='function') updateCodecText(s);
+  });
+  var pSel=document.getElementById('preset-load-sel');if(pSel)pSel.value='';
+  showToast('프리셋 불러오기 완료: '+profiles[presetKey].name);
+  markModified && ['main','sub','prev'].forEach(function(s){markModified(s);});
+}
+
+
+function togglePresetDD(){
+  var dd=document.getElementById('preset-dd');
+  if(dd) dd.classList.toggle('show');
+}
+function selectPreset(key){
+  var dd=document.getElementById('preset-dd');
+  if(dd) dd.classList.remove('show');
+  loadPreset(key);
+}
+document.addEventListener('click',function(e){
+  var dd=document.getElementById('preset-dd');
+  if(dd&&dd.classList.contains('show')){
+    if(!e.target.closest('#preset-trigger-btn')&&!e.target.closest('#preset-dd'))
+      dd.classList.remove('show');
+  }
+});
+
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(function(){t.style.display='none';}
+,2500);}
+
+// 상태 (CH1 탭 전용)
+// state: 'encoding' | 'idle' | 'error'
+function updateStatus(s, on) {
+  setStreamState(s, on ? 'encoding' : 'idle');
+}
+function setStreamState(s, state) {
+  var dot  = document.getElementById('dot-'+s);
+  var txt  = document.getElementById('status-'+s);
+  var live = document.getElementById('live-'+s);
+  var dotCls  = {encoding:'don', idle:'doff', error:'derr'};
+  var txtCls  = {encoding:'status-bps', idle:'status-idle', error:'status-err'};
+  var txtLabel= {encoding:'encoding', idle:'idle', error:'error'};
+  if(dot)  dot.className  = 'dot ' + (dotCls[state]  || 'doff');
+  if(txt)  { txt.className = txtCls[state] || 'status-idle'; txt.textContent = txtLabel[state]; }
+  if(live) {
+    if(state === 'encoding') {
+      live.className = 'bps-live';
+    } else {
+      live.className = 'bps-live idle';
+      live.textContent = '—';
+    }
+  }
+}
+
+// 실시간 bps 애니메이션
+var t=0;
+setInterval(function(){
+  t++;
+  Object.keys(streamState).forEach(function(ch,ci){
+    ['main','sub','prev'].forEach(function(s,si){
+      var st=streamState[ch][s]; if(!st.on)return;
+      var base=st.bps>0?st.bps:1;
+      var v=Math.max(0,base+Math.sin(t*0.2+ci*2+si)*base*0.06+(Math.random()-0.5)*base*0.04);
+      var txt = v.toFixed(1)+' Mbps';
+      var el=document.getElementById('sbps-'+ch+'-'+s); if(el)el.textContent=txt;
+      if(ch==='ch1'){
+        var lel=document.getElementById('live-'+s);
+        if(lel && streamState.ch1[s].on) lel.textContent=v.toFixed(1)+' Mbps';
+      }
+    });
+  });
+},800);
+
+window.onload = function(){
+  renderStatusPanel(); renderCards();
+  setStreamState('main','encoding');
+  setStreamState('sub','error');
+  setStreamState('prev','idle');
+  // prev 크롭 ON 초기 반영
+  var resCrop = document.getElementById('prev-res-crop');
+  if(resCrop){ resCrop.style.color='#f59e0b'; resCrop.style.whiteSpace='nowrap'; resCrop.textContent='✂ 896×576 (크롭 적용)'; }
+  var cropBtn = document.getElementById('crop-btn-prev');
+  if(cropBtn){ cropBtn.className='crop-btn active'; cropBtn.textContent='✂ Crop'; }
+};
+</script>
+
+<!-- 크롭 모달 -->
+<div class="crop-modal-overlay" id="cropModal">
+  <div class="crop-modal">
+    <div class="crop-modal-hd">
+      <span class="crop-modal-title" id="crop-modal-title">CH1 · main 크롭 설정</span>
+      <button class="crop-modal-close" onclick="closeCropModal()">✕</button>
+    </div>
+    <div class="crop-modal-body">
+      <!-- 프리뷰 -->
+      <div class="crop-modal-preview" id="crop-modal-preview">
+        <div class="crop-modal-ov-top"    id="cm-ov-top"    style="height:0%;"></div>
+        <div class="crop-modal-ov-bottom" id="cm-ov-bottom" style="height:0%;"></div>
+        <div class="crop-modal-ov-left"   id="cm-ov-left"   style="width:0%;"></div>
+        <div class="crop-modal-ov-right"  id="cm-ov-right"  style="width:0%;"></div>
+        <div class="crop-modal-center">
+          <div class="crop-modal-res" id="cm-eff-res">1920×1080</div>
+          <div class="crop-modal-res-orig" id="cm-orig-res">원본: 1920×1080</div>
+        </div>
+      </div>
+      <!-- 슬라이더 컨트롤 -->
+      <div class="crop-modal-controls">
+        <div class="crop-ctrl">
+          <span class="crop-ctrl-label">Top</span>
+          <div class="crop-ctrl-row">
+            <input type="range" min="0" max="49" value="0" id="cm-top" oninput="syncCropModal()">
+            <input type="number" class="crop-ctrl-num" id="cm-top-num" value="0" min="0" max="49" oninput="document.getElementById('cm-top').value=this.value;syncCropModal()">
+            <span class="crop-ctrl-unit">%</span>
+          </div>
+        </div>
+        <div class="crop-ctrl">
+          <span class="crop-ctrl-label">Bottom</span>
+          <div class="crop-ctrl-row">
+            <input type="range" min="0" max="49" value="0" id="cm-bottom" oninput="syncCropModal()">
+            <input type="number" class="crop-ctrl-num" id="cm-bottom-num" value="0" min="0" max="49" oninput="document.getElementById('cm-bottom').value=this.value;syncCropModal()">
+            <span class="crop-ctrl-unit">%</span>
+          </div>
+        </div>
+        <div class="crop-ctrl">
+          <span class="crop-ctrl-label">Left</span>
+          <div class="crop-ctrl-row">
+            <input type="range" min="0" max="49" value="0" id="cm-left" oninput="syncCropModal()">
+            <input type="number" class="crop-ctrl-num" id="cm-left-num" value="0" min="0" max="49" oninput="document.getElementById('cm-left').value=this.value;syncCropModal()">
+            <span class="crop-ctrl-unit">%</span>
+          </div>
+        </div>
+        <div class="crop-ctrl">
+          <span class="crop-ctrl-label">Right</span>
+          <div class="crop-ctrl-row">
+            <input type="range" min="0" max="49" value="0" id="cm-right" oninput="syncCropModal()">
+            <input type="number" class="crop-ctrl-num" id="cm-right-num" value="0" min="0" max="49" oninput="document.getElementById('cm-right').value=this.value;syncCropModal()">
+            <span class="crop-ctrl-unit">%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="crop-modal-ft">
+      <div class="crop-en-row">
+        <label class="toggle"><input type="checkbox" id="cm-enabled" onchange="syncCropModal()"><span class="tslider"></span></label>
+        <span id="cm-enabled-label">크롭 OFF</span>
+      </div>
+      <div class="crop-modal-actions">
+        <button class="crop-modal-cancel" onclick="closeCropModal()">취소</button>
+        <button class="crop-modal-apply" onclick="applyCropModal()">적용</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-title">프로파일 적용 확인</div>
+    <div class="modal-body">
+      <span class="modal-profile-name" id="modalProfileName"></span> 프로파일을 적용하면<br>
+      CH1의 <b>main · sub · prev</b> 전체 설정이 변경됩니다.
+      <div class="modal-streams" id="modalStreams"></div>
+      변경하시겠습니까?
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="cancelModal()">취소</button>
+      <button class="modal-btn-apply" onclick="confirmApply()">프로파일 적용</button>
+    </div>
+  </div>
+</div>
+
+<!-- 테스트 녹화 모달 -->
+<div class="modal-overlay" id="recModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title">테스트 녹화 시작</span>
+      <button class="modal-close" onclick="closeRecModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- 채널 선택 (main) -->
+      <div class="modal-section">
+        <span class="modal-label">녹화 채널 (main)</span>
+        <div class="ch-check-grid">
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch1" checked onchange="updateRecPreview()">
+            <div class="ch-check-box">CH1</div>
+            <span class="ch-check-info">FHD</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch2" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH2</div>
+            <span class="ch-check-info">FHD</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch3" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH3</div>
+            <span class="ch-check-info">idle</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch4" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH4</div>
+            <span class="ch-check-info">idle</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-host" onchange="updateRecPreview()">
+            <div class="ch-check-box">Scene</div>
+            <span class="ch-check-info">Mix</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- sub 포함 여부 -->
+      <div class="modal-section">
+        <span class="modal-label">sub 스트림</span>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:#555;">
+          <input type="checkbox" id="rc-sub" onchange="updateRecPreview()"
+            style="width:15px;height:15px;accent-color:#475569;cursor:pointer;">
+          선택된 채널의 sub 함께 녹화
+          <span style="font-size:11px;color:#aaa;">(UHD 백업용)</span>
+        </label>
+      </div>
+
+      <!-- 시간 제한 -->
+      <div class="modal-section">
+        <span class="modal-label">시간 제한</span>
+        <div class="time-btns">
+          <div class="time-btn" onclick="selectTime(this,30)">30초</div>
+          <div class="time-btn on" onclick="selectTime(this,60)">60초</div>
+          <div class="time-btn" onclick="selectTime(this,120)">2분</div>
+          <div class="time-btn" onclick="selectTime(this,0)">제한 없음</div>
+        </div>
+      </div>
+
+      <!-- 예상 저장 경로 -->
+      <div class="modal-section">
+        <span class="modal-label">예상 저장 경로</span>
+        <div id="rec-paths" style="display:flex;flex-direction:column;gap:4px;"></div>
+        <div style="font-size:10px;color:#bbb;margin-top:4px;">경로 패턴은 설정프로그램에 정의된 규칙 적용</div>
+      </div>
+
+    </div>
+    <div class="modal-ft">
+      <button class="modal-cancel" onclick="closeRecModal()">취소</button>
+      <button class="modal-start" onclick="confirmStartRec()">▶ 녹화 시작</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div class="wrap">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:7px;font-size:14px;font-weight:500;">📹 LABY-4K 설정프로그램</div>
+    <div style="display:flex;align-items:center;gap:9px;">
+      <a href="laby4k_wizard_v1.html" style="font-size:12px;padding:4px 10px;border:1px solid #93c5fd;border-radius:6px;background:#eff6ff;color:#1d4ed8;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">⚡ 간편설정</a>
+      <button id="identify-btn" onclick="identifyDevice()" style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;font-weight:500;cursor:pointer;">🔦 녹화기 확인</button>
+      <span style="font-size:12px;color:#888;background:#f5f5f5;padding:3px 9px;border-radius:6px;">● IDLE</span>
+      <button style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;">로그아웃</button>
+    </div>
+  </div>
+
+    <div class="rec-bar" id="rec-bar">
+    <!-- 대기 상태 -->
+    <div id="rec-idle" style="display:flex;align-items:center;gap:10px;width:100%;">
+      <span class="rec-idle-lbl">● 녹화 대기 중</span>
+      <span class="rec-sp"></span>
+      <button class="btn-rec-test" onclick="openRecModal()">▶ 테스트 녹화 시작</button>
+    </div>
+    <!-- 녹화 중 상태 -->
+    <div id="rec-active" style="display:none;align-items:center;gap:10px;width:100%;">
+      <span class="rec-dot-r"></span>
+      <span class="rec-lbl">REC</span>
+      <span class="rec-div"></span>
+      <span class="rec-chs" id="rec-channels">CH1</span>
+      <span class="rec-div"></span>
+      <span class="rec-tlbl">시작</span>
+      <span class="rec-tval" id="rec-start-time">—</span>
+      <span class="rec-div"></span>
+      <span class="rec-elapsed" id="rec-elapsed">00:00:00</span>
+      <span class="rec-sp"></span>
+      <button class="rec-stop" onclick="stopRecording()">■ 녹화 정지</button>
+    </div>
+  </div>
+
+  <div class="layout">
+                    <div class="gnb">
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="8" width="3.5" height="6.5" rx="0.5"/><rect x="6.2" y="4" width="3.5" height="10.5" rx="0.5"/><rect x="11.5" y="1" width="3.5" height="13.5" rx="0.5"/></svg></span>대시보드</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="12" height="8" rx="1.5"/><line x1="5" y1="4" x2="5" y2="2"/><line x1="11" y1="4" x2="11" y2="2"/><line x1="8" y1="12" x2="8" y2="14"/><line x1="5" y1="8" x2="11" y2="8"/></svg></span>입출력 설정</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="3" width="14" height="10" rx="1"/><line x1="1" y1="6.5" x2="15" y2="6.5"/><line x1="4" y1="3" x2="4" y2="6.5"/><line x1="8" y1="3" x2="8" y2="6.5"/><line x1="12" y1="3" x2="12" y2="6.5"/><line x1="4" y1="9.5" x2="4" y2="13"/><line x1="8" y1="9.5" x2="8" y2="13"/><line x1="12" y1="9.5" x2="12" y2="13"/></svg></span>씬</div>
+      <div class="gi on"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="4" x2="15" y2="4"/><line x1="1" y1="8" x2="15" y2="8"/><line x1="1" y1="12" x2="15" y2="12"/><circle cx="5" cy="4" r="2" fill="white" stroke="currentColor"/><circle cx="11" cy="8" r="2" fill="white" stroke="currentColor"/><circle cx="7" cy="12" r="2" fill="white" stroke="currentColor"/></svg></span>인코딩 및 프로파일</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 5.5 C4 2.5 12 2.5 15 5.5"/><path d="M3.5 8.2 C5.5 6.2 10.5 6.2 12.5 8.2"/><path d="M6 10.5 C7 9.5 9 9.5 10 10.5"/><circle cx="8" cy="13" r="1.2" fill="currentColor" stroke="none"/></svg></span>스트리밍</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg></span>녹화 및 저장</div>
+      <div class="gi" onclick="showPage&&showPage('upload')" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></span>업로드</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="12" cy="10" r="3"/></svg></span>기기 녹화 설정</div>
+      <div class="gd"></div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>파일 관리</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg></span>계정</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.5"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/><line x1="2.9" y1="2.9" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="13.1" y2="13.1"/><line x1="2.9" y1="13.1" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="13.1" y2="2.9"/></svg></span>시스템 및 네트워크</div>
+    </div>
+
+    <div class="main-content">
+      <p class="ptitle">인코딩 및 프로파일</p>
+
+      <!-- ── 전채널 인코딩 상태 패널 ── -->
+      <div class="status-panel">
+        <div class="status-panel-hd">
+          <span class="sec-title"><span class="sec-icon">📡</span>전채널 인코딩 상태</span>
+          <span class="rtbdg">실시간</span>
+          <span style="font-size:11px;color:#aaa;margin-left:4px;">채널명 클릭 시 해당 탭으로 이동</span>
+          <span style="flex:1;"></span>
+          <button class="status-edit-btn" id="status-edit-btn" onclick="toggleStatusEditMode()" title="스트림 on/off 편집">✏️</button>
+        </div>
+        <table class="status-tbl">
+          <thead>
+            <tr>
+              <th class="ch-col">채널</th>
+              <th class="stream-hd">main</th>
+              <th class="stream-hd">sub</th>
+              <th class="stream-hd">prev</th>
+            </tr>
+          </thead>
+          <tbody id="status-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- ── 탭 ── -->
+      <div class="tabs">
+        <div class="tab on">CH1</div>
+        <div class="tab">CH2</div>
+        <div class="tab">CH3</div>
+        <div class="tab">CH4</div>
+        <div class="tab">Scene</div>
+      </div>
+
+      <!-- ── CH1 인코더 설정 ── -->
+      <div class="sec">
+        <div class="sec-hd">
+          <span class="sec-title"><span class="sec-icon">🎛</span>CH1 인코더 설정</span>
+          <span class="rtbdg">실시간 반영</span>
+        </div>
+
+        <!-- 프로파일 선택 -->
+        <div class="profile-area">
+          <div id="readonly-notice" class="readonly-notice">🔒 기본 제공 프로파일은 읽기 전용입니다. 해상도·FPS·비트레이트 변경이 필요하면 커스텀 프로파일을 사용하세요. (Crop은 변경 가능)</div>
+          <div class="profile-area-label">프로파일 선택 &nbsp;·&nbsp; Gateway에서 관리되는 CH1 화질 프로파일</div>
+          <div class="profile-cards">
+            <div class="profile-card active" id="card-uhd_fhd" onclick="selectProfileCard('uhd_fhd')">
+              <div class="active-badge card-badge">현재 적용</div>
+              <div class="profile-card-name">초고화질 (UHD/FHD)</div>
+              <div class="profile-card-streams">
+                <div class="stream-line"><span class="stream-key">main</span>FHD · H.265 · 25Mbps · 60fps</div>
+                <div class="stream-line"><span class="stream-key">sub</span>UHD · H.265 · 50Mbps · 30fps</div>
+                <div class="stream-line"><span class="stream-key">prev</span>HD · H.264 · 2Mbps · 30fps</div>
+              </div>
+            </div>
+            <div class="profile-card" id="card-fhd_hd" onclick="selectProfileCard('fhd_hd')">
+              <div class="profile-card-name">인터넷서비스용 (FHD/HD)</div>
+              <div class="profile-card-streams">
+                <div class="stream-line"><span class="stream-key">main</span>FHD · H.264 · 12Mbps · 30fps</div>
+                <div class="stream-line"><span class="stream-key">sub</span>HD · H.264 · 4Mbps · 30fps</div>
+                <div class="stream-line"><span class="stream-key">prev</span>HD · H.264 · 2Mbps · 30fps</div>
+              </div>
+            </div>
+            <div class="profile-card" id="card-temp_fhd" onclick="selectProfileCard('temp_fhd')">
+              <div class="profile-card-name">임시서비스용 (FHD/HD)</div>
+              <div class="profile-card-streams">
+                <div class="stream-line"><span class="stream-key">main</span>FHD · H.264 · 8Mbps · 30fps</div>
+                <div class="stream-line"><span class="stream-key">sub</span>HD · H.264 · 2Mbps · 30fps</div>
+                <div class="stream-line"><span class="stream-key">prev</span>480p · H.264 · 1Mbps · 15fps</div>
+              </div>
+            </div>
+            <div class="profile-card custom-card" id="card-custom" style="min-width:300px;max-width:380px;" onclick="selectProfileCard('custom')">
+              <!-- 프리셋 불러오기 버튼 (커스텀 카드 상단) -->
+              <div id="preset-bar" style="display:none;margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed #c4b5fd;" onclick="event.stopPropagation()">
+                <div class="preset-trigger-wrap">
+                  <button id="preset-trigger-btn" onclick="togglePresetDD()"
+                    style="padding:4px 12px;font-size:11px;font-weight:600;border:1.5px solid #7c3aed;border-radius:6px;background:#f5f3ff;color:#7c3aed;cursor:pointer;">
+                    불러오기
+                  </button>
+                  <div class="preset-dropdown" id="preset-dd">
+                    <div class="preset-opt" onclick="selectPreset('uhd_fhd')">
+                      <div class="preset-opt-name">초고화질 (UHD/FHD)</div>
+                      <div class="preset-opt-desc">FHD H.265 25Mbps · UHD H.265 50Mbps</div>
+                    </div>
+                    <div class="preset-opt" onclick="selectPreset('fhd_hd')">
+                      <div class="preset-opt-name">인터넷서비스용 (FHD/HD)</div>
+                      <div class="preset-opt-desc">FHD H.264 12Mbps · HD H.264 4Mbps</div>
+                    </div>
+                    <div class="preset-opt" onclick="selectPreset('temp_fhd')">
+                      <div class="preset-opt-name">임시서비스용 (FHD/HD)</div>
+                      <div class="preset-opt-desc">FHD H.264 8Mbps · HD H.264 2Mbps</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-card-name">커스텀 <span style="font-size:10px;color:#7c3aed;font-weight:400;margin-left:4px;">편집 가능</span></div>
+              <div class="profile-card-streams">
+                <div class="stream-line"><span class="stream-key">main</span>FHD · H.264 · 10Mbps · 30fps</div>
+                <div class="stream-line"><span class="stream-key">sub</span>HD · H.264 · 4Mbps · 30fps</div>
+                <div class="stream-line"><span class="stream-key">prev</span>HD · H.264 · 2Mbps · 30fps</div>
+              </div>
+            </div>
+          </div>
+          <div class="apply-pending" id="applyPending">
+            <span class="apply-pending-text">⚠ <span id="pendingName"></span> 프로파일이 선택되었습니다. 적용하면 CH1 전체 스트림 설정이 변경됩니다.</span>
+            <button class="apply-cancel-btn" onclick="cancelPending()">취소</button>
+            <button class="apply-confirm-btn" onclick="showConfirmModal()">프로파일 적용</button>
+          </div>
+        </div>
+
+        <!-- 스트림 테이블 (ON/OFF 제거, 상태만 표시) -->
+        <table class="enc-table">
+          <thead>
+            <tr>
+              <th style="width:70px;">스트림</th>
+              <th style="width:90px;">상태</th>
+              <th style="width:110px;">실시간 bps</th>
+              <th style="width:150px;">해상도</th>
+              <th style="width:58px;">코덱</th>
+              <th style="width:58px;">FPS</th>
+              <th style="width:100px;">비트레이트</th>
+              <th style="width:90px;">접속</th>
+              <th style="width:120px;text-align:right;padding-right:14px;"><span style="font-size:10px;color:#bbb;">수정 시 행 강조</span></th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <!-- main -->
+            <tr id="row-main">
+              <td><div style="display:flex;align-items:center;gap:5px;"><span class="modified-dot"></span><span class="stream-badge badge-main">main</span></div></td>
+              <td><div style="display:flex;align-items:center;gap:5px;"><span class="dot don" id="dot-main"></span><span class="status-bps" id="status-main">encoding</span></div></td>
+              <td><span class="bps-live" id="live-main">24.8 Mbps</span></td>
+              <td>
+                <select class="cell-select" id="main-res" onchange="updateCropPreview('main');markModified('main')"><option>1920×1080</option><option>3840×2160</option><option>1280×720</option></select>
+                <div id="main-res-crop" style="font-size:11px;color:#aaa;margin-top:3px;white-space:nowrap;">크롭 없음</div>
+              </td>
+              <td><span class="codec-text" id="main-codec-txt">H.265</span></td>
+              <td><select class="cell-select" id="main-fps" style="width:58px;" onchange="markModified('main')"><option>60</option><option>30</option><option>24</option></select></td>
+              <td><span class="bps-set" id="main-bps-set">25 Mbps</span></td>
+              <td><div class="stream-url-group"><span class="url-badge rtsp-badge" onclick="copyUrl(this,'rtsp://0.0.0.0/video1')" title="클릭하여 복사">RTSP</span><span class="url-badge webrtc-badge" onclick="copyUrl(this,'http://0.0.0.0/video1')" title="클릭하여 복사">WebRTC</span></div></td>
+              <td><div class="stream-actions"><button class="stream-apply-btn" id="apply-main" onclick="applyStream('main')">적용 (PATCH)</button><button class="crop-btn" id="crop-btn-main" onclick="openCropModal('main')">✂ Crop</button><button class="expand-btn" id="btn-main" onclick="toggleDetail('main')">상세 ▾</button></div></td>
+            </tr>
+            <tr class="detail-row" id="detail-main" style="display:none;"><td colspan="9"><div class="detail-panel">
+              <div class="dp-section"><div class="dp-section-title">Video 상세</div>
+                <div class="dp-grid6">
+                  <div class="dp-group"><span class="dp-label">Codec</span><select class="cell-select" id="main-codec" onchange="updateCodecText('main');markModified('main')"><option>H.265</option><option>H.264</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Profile</span><select class="cell-select" id="main-profile-v" onchange="markModified('main')"><option>Main</option><option>High</option><option>Baseline</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Level</span><select class="cell-select" id="main-level" onchange="markModified('main')"><option>auto</option><option>4.0</option><option>4.1</option><option>5.0</option><option>5.1</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Tier (H.265)</span><select class="cell-select" id="main-tier" onchange="markModified('main')"><option>Main</option><option>High</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Rate Control</span><select class="cell-select" id="main-rc" onchange="markModified('main')"><option>CBR</option><option>VBR</option><option>CQP</option></select></div>
+                  <div class="dp-group"><span class="dp-label">GOP (초)</span><div class="sl-row"><input type="range" min="1" max="10" value="1" id="main-gop" oninput="document.getElementById('main-gop-val').textContent=this.value+'s';markModified('main')"><span class="sl-val" id="main-gop-val">1s</span></div></div>
+                </div>
+                <div class="dp-divider"></div>
+                <div class="dp-grid6">
+                  <div class="dp-group"><span class="dp-label">QP init</span><input type="number" class="cell-input" id="main-qp-init" value="26" min="0" max="51" style="width:100%;" oninput="markModified('main')"></div>
+                  <div class="dp-group"><span class="dp-label">QP min</span><input type="number" class="cell-input" id="main-qp-min" value="20" min="0" max="51" style="width:100%;" oninput="markModified('main')"></div>
+                  <div class="dp-group"><span class="dp-label">QP max</span><input type="number" class="cell-input" id="main-qp-max" value="40" min="0" max="51" style="width:100%;" oninput="markModified('main')"></div>
+                  <div class="dp-group"><span class="dp-label">QP I min</span><input type="number" class="cell-input" id="main-qp-mini" value="20" min="0" max="51" style="width:100%;" oninput="markModified('main')"></div>
+                  <div class="dp-group"><span class="dp-label">QP I max</span><input type="number" class="cell-input" id="main-qp-maxi" value="40" min="0" max="51" style="width:100%;" oninput="markModified('main')"></div>
+                  <div class="dp-group"><span class="dp-label">QP step</span><input type="number" class="cell-input" id="main-qp-step" value="4" min="1" max="16" style="width:100%;" oninput="markModified('main')"></div>
+                </div>
+              </div>
+              <div class="dp-divider"></div>
+              <div class="dp-section"><div class="dp-section-title">Audio 상세</div>
+                <div class="dp-grid6">
+                  <div class="dp-group"><span class="dp-label">Codec</span><select class="cell-select" id="main-audio-codec" onchange="markModified('main')"><option>AAC-LC</option><option>AAC-HE</option><option>MP3</option><option>PCM</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Bitrate (kbps)</span><select class="cell-select" id="main-audio-bitrate" onchange="markModified('main')"><option>96</option><option value="128" selected>128</option><option>192</option><option>256</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Channels</span><select class="cell-select" id="main-audio-channels" onchange="markModified('main')"><option value="1">Mono (1)</option><option value="2" selected>Stereo (2)</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Samplerate</span><select class="cell-select" id="main-audio-samplerate" onchange="markModified('main')"><option>44100</option><option value="48000" selected>48000</option></select></div>
+                </div>
+              </div>
+            </div></td></tr>
+            <tr id="row-sub">
+              <td><div style="display:flex;align-items:center;gap:5px;"><span class="modified-dot"></span><span class="stream-badge badge-sub">sub</span></div></td>
+              <td><div style="display:flex;align-items:center;gap:5px;"><span class="dot derr" id="dot-sub"></span><span class="status-err" id="status-sub">error</span></div></td>
+              <td><span class="bps-live idle" id="live-sub">—</span></td>
+              <td>
+                <select class="cell-select" id="sub-res" onchange="updateCropPreview('sub');markModified('sub')"><option>3840×2160</option><option>1920×1080</option><option>1280×720</option></select>
+                <div id="sub-res-crop" style="font-size:11px;color:#aaa;margin-top:3px;white-space:nowrap;">크롭 없음</div>
+              </td>
+              <td><span class="codec-text" id="sub-codec-txt">H.265</span></td>
+              <td><select class="cell-select" id="sub-fps" style="width:58px;" onchange="markModified('sub')"><option>30</option><option>60</option><option>24</option></select></td>
+              <td><span class="bps-set" id="sub-bps-set">50 Mbps</span></td>
+              <td><div class="stream-url-group"><span class="url-badge rtsp-badge" onclick="copyUrl(this,'rtsp://0.0.0.0/video1s')" title="클릭하여 복사">RTSP</span><span class="url-badge webrtc-badge" onclick="copyUrl(this,'http://0.0.0.0/video1s')" title="클릭하여 복사">WebRTC</span></div></td>
+              <td><div class="stream-actions"><button class="stream-apply-btn" id="apply-sub" onclick="applyStream('sub')">적용 (PATCH)</button><button class="crop-btn" id="crop-btn-sub" onclick="openCropModal('sub')">✂ Crop</button><button class="expand-btn" id="btn-sub" onclick="toggleDetail('sub')">상세 ▾</button></div></td>
+            </tr>
+            <tr class="detail-row" id="detail-sub" style="display:none;"><td colspan="9"><div class="detail-panel">
+              <div class="dp-section"><div class="dp-section-title">Video 상세</div>
+                <div class="dp-grid6">
+                  <div class="dp-group"><span class="dp-label">Codec</span><select class="cell-select" id="sub-codec" onchange="updateCodecText('sub');markModified('sub')"><option>H.265</option><option>H.264</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Profile</span><select class="cell-select" id="sub-profile-v" onchange="markModified('sub')"><option>Main</option><option>High</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Level</span><select class="cell-select" id="sub-level" onchange="markModified('sub')"><option>auto</option><option>5.0</option><option>5.1</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Tier (H.265)</span><select class="cell-select" id="sub-tier" onchange="markModified('sub')"><option>Main</option><option>High</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Rate Control</span><select class="cell-select" id="sub-rc" onchange="markModified('sub')"><option>CBR</option><option>VBR</option></select></div>
+                  <div class="dp-group"><span class="dp-label">GOP (초)</span><div class="sl-row"><input type="range" min="1" max="10" value="1" id="sub-gop" oninput="document.getElementById('sub-gop-val').textContent=this.value+'s';markModified('sub')"><span class="sl-val" id="sub-gop-val">1s</span></div></div>
+                </div>
+                <div class="dp-divider"></div>
+                <div class="dp-grid6">
+                  <div class="dp-group"><span class="dp-label">QP init</span><input type="number" class="cell-input" id="sub-qp-init" value="26" style="width:100%;" oninput="markModified('sub')"></div>
+                  <div class="dp-group"><span class="dp-label">QP min</span><input type="number" class="cell-input" id="sub-qp-min" value="20" style="width:100%;" oninput="markModified('sub')"></div>
+                  <div class="dp-group"><span class="dp-label">QP max</span><input type="number" class="cell-input" id="sub-qp-max" value="40" style="width:100%;" oninput="markModified('sub')"></div>
+                  <div class="dp-group"><span class="dp-label">QP I min</span><input type="number" class="cell-input" id="sub-qp-mini" value="20" style="width:100%;" oninput="markModified('sub')"></div>
+                  <div class="dp-group"><span class="dp-label">QP I max</span><input type="number" class="cell-input" id="sub-qp-maxi" value="40" style="width:100%;" oninput="markModified('sub')"></div>
+                  <div class="dp-group"><span class="dp-label">QP step</span><input type="number" class="cell-input" id="sub-qp-step" value="4" style="width:100%;" oninput="markModified('sub')"></div>
+                </div>
+              </div>
+              <div class="dp-divider"></div>
+              <div class="dp-section"><div class="dp-section-title">Audio 상세</div>
+                <div class="dp-grid6">
+                  <div class="dp-group"><span class="dp-label">Codec</span><select class="cell-select" id="sub-audio-codec" onchange="markModified('sub')"><option>AAC-LC</option><option>AAC-HE</option><option>MP3</option><option>PCM</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Bitrate (kbps)</span><select class="cell-select" id="sub-audio-bitrate" onchange="markModified('sub')"><option>96</option><option value="128" selected>128</option><option>192</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Channels</span><select class="cell-select" id="sub-audio-channels" onchange="markModified('sub')"><option value="1">Mono (1)</option><option value="2" selected>Stereo (2)</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Samplerate</span><select class="cell-select" id="sub-audio-samplerate" onchange="markModified('sub')"><option>44100</option><option value="48000" selected>48000</option></select></div>
+                </div>
+              </div>
+            </div></td></tr>
+            <!-- prev -->
+            <tr id="row-prev">
+              <td><div style="display:flex;align-items:center;gap:5px;"><span class="modified-dot"></span><span class="stream-badge badge-prev">prev</span></div></td>
+              <td><div style="display:flex;align-items:center;gap:5px;"><span class="dot doff" id="dot-prev"></span><span class="status-idle" id="status-prev">idle</span></div></td>
+              <td><span class="bps-live idle" id="live-prev">—</span></td>
+              <td>
+                <select class="cell-select" id="prev-res" onchange="updateCropPreview('prev');markModified('prev')"><option>1280×720</option><option>854×480</option><option>640×360</option></select>
+                <div id="prev-res-crop" style="font-size:11px;color:#f59e0b;margin-top:3px;white-space:nowrap;">✂ — 계산 중</div>
+              </td>
+              <td><span class="codec-text" id="prev-codec-txt">H.264</span></td>
+              <td><select class="cell-select" id="prev-fps" style="width:58px;" onchange="markModified('prev')"><option>30</option><option>15</option></select></td>
+              <td><span class="bps-set" id="prev-bps-set">2 Mbps</span></td>
+              <td><div class="stream-url-group"><span class="url-badge rtsp-badge" onclick="copyUrl(this,'rtsp://0.0.0.0/video1p')" title="클릭하여 복사">RTSP</span><span class="url-badge webrtc-badge" onclick="copyUrl(this,'http://0.0.0.0/video1p')" title="클릭하여 복사">WebRTC</span></div></td>
+              <td><div class="stream-actions"><button class="stream-apply-btn" id="apply-prev" onclick="applyStream('prev')">적용 (PATCH)</button><button class="crop-btn" id="crop-btn-prev" onclick="openCropModal('prev')">✂ Crop</button><button class="expand-btn" id="btn-prev" onclick="toggleDetail('prev')">상세 ▾</button></div></td>
+            </tr>
+            <tr class="detail-row" id="detail-prev" style="display:none;"><td colspan="9"><div class="detail-panel">
+              <div class="dp-section"><div class="dp-section-title">Video 상세</div>
+                <div class="dp-grid6">
+                  <div class="dp-group"><span class="dp-label">Codec</span><select class="cell-select" id="prev-codec" onchange="updateCodecText('prev');markModified('prev')"><option>H.264</option><option>H.265</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Profile</span><select class="cell-select" id="prev-profile-v" onchange="markModified('prev')"><option>Main</option><option>Baseline</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Level</span><select class="cell-select" id="prev-level" onchange="markModified('prev')"><option>auto</option><option>3.1</option><option>4.0</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Tier (H.265)</span><select class="cell-select" id="prev-tier" onchange="markModified('prev')"><option>Main</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Rate Control</span><select class="cell-select" id="prev-rc" onchange="markModified('prev')"><option>CBR</option><option>VBR</option></select></div>
+                  <div class="dp-group"><span class="dp-label">GOP (초)</span><div class="sl-row"><input type="range" min="1" max="10" value="2" id="prev-gop" oninput="document.getElementById('prev-gop-val').textContent=this.value+'s';markModified('prev')"><span class="sl-val" id="prev-gop-val">2s</span></div></div>
+                </div>
+                <div class="dp-divider"></div>
+                <div class="dp-grid6">
+                  <div class="dp-group"><span class="dp-label">QP init</span><input type="number" class="cell-input" id="prev-qp-init" value="28" style="width:100%;" oninput="markModified('prev')"></div>
+                  <div class="dp-group"><span class="dp-label">QP min</span><input type="number" class="cell-input" id="prev-qp-min" value="22" style="width:100%;" oninput="markModified('prev')"></div>
+                  <div class="dp-group"><span class="dp-label">QP max</span><input type="number" class="cell-input" id="prev-qp-max" value="42" style="width:100%;" oninput="markModified('prev')"></div>
+                  <div class="dp-group"><span class="dp-label">QP I min</span><input type="number" class="cell-input" id="prev-qp-mini" value="22" style="width:100%;" oninput="markModified('prev')"></div>
+                  <div class="dp-group"><span class="dp-label">QP I max</span><input type="number" class="cell-input" id="prev-qp-maxi" value="42" style="width:100%;" oninput="markModified('prev')"></div>
+                  <div class="dp-group"><span class="dp-label">QP step</span><input type="number" class="cell-input" id="prev-qp-step" value="4" style="width:100%;" oninput="markModified('prev')"></div>
+                </div>
+              </div>
+              <div class="dp-divider"></div>
+              <div class="dp-section"><div class="dp-section-title">Audio 상세</div>
+                <div class="dp-grid6">
+                  <div class="dp-group"><span class="dp-label">Codec</span><select class="cell-select" id="prev-audio-codec" onchange="markModified('prev')"><option>AAC-LC</option><option>AAC-HE</option><option>MP3</option><option>PCM</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Bitrate (kbps)</span><select class="cell-select" id="prev-audio-bitrate" onchange="markModified('prev')"><option>64</option><option value="96" selected>96</option><option>128</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Channels</span><select class="cell-select" id="prev-audio-channels" onchange="markModified('prev')"><option value="1" selected>Mono (1)</option><option value="2">Stereo (2)</option></select></div>
+                  <div class="dp-group"><span class="dp-label">Samplerate</span><select class="cell-select" id="prev-audio-samplerate" onchange="markModified('prev')"><option>44100</option><option value="48000" selected>48000</option></select></div>
+                </div>
+              </div>
+            </div></td></tr>
+
+          </tbody>
+        </table>
+
+        <div class="vepu-bar-wrap">
+          <span class="vepu-label">VEPU 사용량 (CH1)</span>
+          <div class="vepu-track"><div class="vepu-fill" style="width:72%;background:#22c55e;"></div></div>
+          <span class="vepu-val">72% · FHD@60 + UHD@30 + HD@30</span>
+        </div>
+      </div>
+      <!-- 자동 정지 설정 -->
+
+    </div>
+  </div>
+</div>
+<script>
+/* ── 자동 정지 설정 ── */
+function toggleMaxDur(on){
+  document.getElementById('maxdur-lbl').textContent = on ? '사용 중' : '사용 안 함';
+  var f = document.getElementById('maxdur-fields');
+  f.style.opacity = on ? '1' : '0.4';
+  f.style.pointerEvents = on ? 'auto' : 'none';
+}
+function updateMaxDurSec(){
+  var h = parseInt(document.getElementById('maxdur-h').value)||0;
+  var m = parseInt(document.getElementById('maxdur-m').value)||0;
+  var sec = h*3600 + m*60;
+  var hint = document.getElementById('maxdur-sec-hint');
+  var warn = document.getElementById('maxdur-warn');
+  if(hint) hint.textContent = '= '+sec.toLocaleString()+'초 (maxdurationsec)';
+  if(warn) warn.classList.toggle('show', sec > 0 && sec < 1800);
+}
+function saveMaxDur(){
+  var on = document.getElementById('maxdur-toggle').checked;
+  var h = parseInt(document.getElementById('maxdur-h').value)||0;
+  var m = parseInt(document.getElementById('maxdur-m').value)||0;
+  var sec = h*3600 + m*60;
+  showToast && showToast('PATCH encoderpreset · maxdurationsec: '+(on?sec:'disabled'));
+}
+function toggleMinStorage(on){
+  document.getElementById('minstorage-lbl').textContent = on ? '사용 중' : '사용 안 함';
+  var f = document.getElementById('minstorage-fields');
+  f.style.opacity = on ? '1' : '0.4';
+  f.style.pointerEvents = on ? 'auto' : 'none';
+  if(on){ var el=document.getElementById('storage-free-now'); if(el) el.textContent='1.7 TB'; }
+}
+function saveMinStorage(){
+  var on = document.getElementById('minstorage-toggle').checked;
+  var val = document.getElementById('minstorage-val').value;
+  showToast && showToast('PATCH encoderpreset · max_storage_free: '+(on?val+'GB':'disabled'));
+}
+
+function updateCodecText(s){
+  var sel=document.getElementById(s+'-codec');
+  var txt=document.getElementById(s+'-codec-txt');
+  if(sel&&txt) txt.textContent=sel.value;
+}
+function copyUrl(el, url) {
+  navigator.clipboard.writeText(url).then(function(){
+    var orig = el.textContent;
+    el.classList.add('copied');
+    el.textContent = '✓ 복사됨';
+    setTimeout(function(){ el.classList.remove('copied'); el.textContent = orig; }, 1500);
+  }).catch(function(){
+    showToast(url);
+  });
+}
+
+var openMap={main:false,sub:false,prev:false};
+function toggleDetail(s){openMap[s]=!openMap[s];document.getElementById('detail-'+s).style.display=openMap[s]?'':'none';var btn=document.getElementById('btn-'+s);btn.textContent=openMap[s]?'상세 ▴':'상세 ▾';btn.classList.toggle('open',openMap[s]);}
+
+// 크롭 상태 저장
+var cropState = {
+  main:{ enabled:false, top:0, bottom:0, left:0, right:0 },
+  sub: { enabled:false, top:0, bottom:0, left:0, right:0 },
+  prev:{ enabled:true,  top:10,bottom:10,left:15,right:15 }
+};
+var cropModalStream = '';
+
+function openCropModal(s) {
+  cropModalStream = s;
+  var c = cropState[s];
+  var resSel = document.getElementById(s+'-res');
+  var resVal = resSel ? resSel.value : '1920×1080';
+  document.getElementById('crop-modal-title').textContent = 'CH1 · '+s+' 크롭 설정  ·  원본: '+resVal;
+  document.getElementById('cm-enabled').checked = c.enabled;
+  ['top','bottom','left','right'].forEach(function(k){
+    document.getElementById('cm-'+k).value     = c[k];
+    document.getElementById('cm-'+k+'-num').value = c[k];
+  });
+  syncCropModal();
+  document.getElementById('cropModal').classList.add('show');
+}
+
+function closeCropModal(){
+  document.getElementById('cropModal').classList.remove('show');
+}
+
+function syncCropModal(){
+  var top = parseInt(document.getElementById('cm-top').value)||0;
+  var bot = parseInt(document.getElementById('cm-bottom').value)||0;
+  var lft = parseInt(document.getElementById('cm-left').value)||0;
+  var rgt = parseInt(document.getElementById('cm-right').value)||0;
+  var en  = document.getElementById('cm-enabled').checked;
+  // 숫자 입력과 슬라이더 동기화
+  ['top','bottom','left','right'].forEach(function(k){
+    var sl = document.getElementById('cm-'+k);
+    var nm = document.getElementById('cm-'+k+'-num');
+    nm.value = sl.value;
+  });
+  // 오버레이
+  document.getElementById('cm-ov-top').style.height    = (en?top:0)+'%';
+  document.getElementById('cm-ov-bottom').style.height = (en?bot:0)+'%';
+  document.getElementById('cm-ov-left').style.width    = (en?lft:0)+'%';
+  document.getElementById('cm-ov-right').style.width   = (en?rgt:0)+'%';
+  // 해상도 계산
+  var resSel = document.getElementById(cropModalStream+'-res');
+  var resVal = resSel ? resSel.value : '1920×1080';
+  var parts  = resVal.split('×');
+  var origW  = parseInt(parts[0])||1920;
+  var origH  = parseInt(parts[1])||1080;
+  document.getElementById('cm-orig-res').textContent = '원본: '+origW+'×'+origH;
+  if(en){
+    var effW = Math.max(2, Math.round(origW*(1-lft/100-rgt/100)));
+    var effH = Math.max(2, Math.round(origH*(1-top/100-bot/100)));
+    document.getElementById('cm-eff-res').textContent = '✂ '+effW+' × '+effH;
+    document.getElementById('cm-eff-res').style.color = '#fbbf24';
+    document.getElementById('cm-enabled-label').textContent = '크롭 ON';
+  } else {
+    document.getElementById('cm-eff-res').textContent = origW+' × '+origH;
+    document.getElementById('cm-eff-res').style.color = 'rgba(255,255,255,0.85)';
+    document.getElementById('cm-enabled-label').textContent = '크롭 OFF';
+  }
+}
+
+function applyCropModal(){
+  var s   = cropModalStream;
+  var en  = document.getElementById('cm-enabled').checked;
+  var top = parseInt(document.getElementById('cm-top').value)||0;
+  var bot = parseInt(document.getElementById('cm-bottom').value)||0;
+  var lft = parseInt(document.getElementById('cm-left').value)||0;
+  var rgt = parseInt(document.getElementById('cm-right').value)||0;
+  cropState[s] = {enabled:en,top:top,bottom:bot,left:lft,right:rgt};
+  // 행의 해상도 셀 업데이트
+  var resCrop = document.getElementById(s+'-res-crop');
+  var cropBtn = document.getElementById('crop-btn-'+s);
+  if(en){
+    var resSel = document.getElementById(s+'-res');
+    var resVal = resSel ? resSel.value : '1920×1080';
+    var parts  = resVal.split('×');
+    var effW   = Math.max(2,Math.round(parseInt(parts[0])*(1-lft/100-rgt/100)));
+    var effH   = Math.max(2,Math.round(parseInt(parts[1])*(1-top/100-bot/100)));
+    if(resCrop){ resCrop.style.color='#f59e0b'; resCrop.textContent='✂ '+effW+'×'+effH+' (크롭 적용)'; }
+    if(cropBtn){ cropBtn.className='crop-btn active'; cropBtn.textContent='✂ Crop'; }
+  } else {
+    if(resCrop){ resCrop.style.color='#aaa'; resCrop.textContent='크롭 없음'; }
+    if(cropBtn){ cropBtn.className='crop-btn'; cropBtn.textContent='✂ Crop'; }
+  }
+  markModified(s);
+  closeCropModal();
+  showToast(s+' 크롭 설정 적용됨 · PATCH ~/video/crop 예정');
+}
+
+function updateCropPreview(s) {
+  // 행 해상도 셀 업데이트 (해상도 드롭다운 변경 시)
+  var c = cropState[s]; if(!c) return;
+  if(!c.enabled) return;
+  var resSel = document.getElementById(s+'-res');
+  var resVal = resSel ? resSel.value : '1920×1080';
+  var parts  = resVal.split('×');
+  var effW   = Math.max(2,Math.round(parseInt(parts[0])*(1-c.left/100-c.right/100)));
+  var effH   = Math.max(2,Math.round(parseInt(parts[1])*(1-c.top/100-c.bottom/100)));
+  var resCrop = document.getElementById(s+'-res-crop');
+  if(resCrop){ resCrop.style.color='#f59e0b'; resCrop.textContent='✂ '+effW+'×'+effH+' (크롭 적용)'; }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+var recStartTime = null;
+var recElapsedIv = null;
+var recTimerIv   = null;
+var recTimeSec   = 0;
+
+function confirmStartRec(){
+  var chs=[];
+  ['ch1','ch2','ch3','ch4','host'].forEach(function(c){
+    if(document.getElementById('rc-'+c).checked) chs.push(c.toUpperCase());
+  });
+  if(!chs.length){ showToast('채널을 선택해주세요'); return; }
+  var withSub = document.getElementById('rc-sub').checked;
+  var label = chs.join(' · ') + (withSub ? '  (+sub)' : '');
+  closeRecModal();
+  startRecording(label);
+  if(recTimeSec>0){
+    clearTimeout(recTimerIv);
+    recTimerIv=setTimeout(function(){
+      stopRecording();
+      showToast('⏱ 시간 제한 도달 — 녹화 자동 정지');
+    }, recTimeSec*1000);
+  }
+}
+
+function startRecording(channels){
+  recStartTime = new Date();
+  var ri=document.getElementById('rec-idle');
+  var ra=document.getElementById('rec-active');
+  if(ri) ri.style.display='none';
+  if(ra) ra.style.display='flex';
+  var elCh=document.getElementById('rec-channels');
+  var elSt=document.getElementById('rec-start-time');
+  if(elCh) elCh.textContent = channels || 'CH1';
+  if(elSt) elSt.textContent = recStartTime.toTimeString().slice(0,8);
+  recElapsedIv = setInterval(function(){
+    var sec = Math.floor((Date.now()-recStartTime)/1000);
+    var h=String(Math.floor(sec/3600)).padStart(2,'0');
+    var m=String(Math.floor((sec%3600)/60)).padStart(2,'0');
+    var s=String(sec%60).padStart(2,'0');
+    var elEl=document.getElementById('rec-elapsed');
+    if(elEl) elEl.textContent = h+':'+m+':'+s;
+  },1000);
+  showToast('▶ 테스트 녹화 시작 · POST ~/recording/start');
+}
+
+function stopRecording(){
+  clearInterval(recElapsedIv);
+  recStartTime = null;
+  var ra=document.getElementById('rec-active');
+  var ri=document.getElementById('rec-idle');
+  if(ra) ra.style.display='none';
+  if(ri) ri.style.display='flex';
+  showToast('■ 녹화 정지 · POST ~/recording/stop');
+}
+
+function openRecModal(){
+  updateRecPreview();
+  document.getElementById('recModal').classList.add('show');
+}
+
+function closeRecModal(){
+  document.getElementById('recModal').classList.remove('show');
+}
+
+function updateRecPreview(){
+  var chs=[];
+  ['ch1','ch2','ch3','ch4','host'].forEach(function(c){
+    if(document.getElementById('rc-'+c).checked) chs.push(c);
+  });
+  var withSub = document.getElementById('rc-sub').checked;
+  var d = new Date();
+  var ds = d.getFullYear().toString().slice(2)+
+    String(d.getMonth()+1).padStart(2,'0')+
+    String(d.getDate()).padStart(2,'0');
+  var ts = String(d.getHours()).padStart(2,'0')+
+           String(d.getMinutes()).padStart(2,'0')+
+           String(d.getSeconds()).padStart(2,'0');
+
+  var wrap = document.getElementById('rec-paths');
+  wrap.innerHTML = '';
+  if(!chs.length){
+    wrap.innerHTML='<div class="path-display" style="color:#ef4444;">채널을 선택해주세요</div>';
+    return;
+  }
+  var chStr = chs.length===1 ? chs[0] : chs.join('·');
+  var suffix = withSub ? '_*.mp4' : '_main.mp4';
+  wrap.innerHTML = '<div class="path-display">~/data/test/'+ds+'_'+ts+'_'+chStr+suffix+'</div>';
+  if(chs.length>1){
+    wrap.innerHTML += '<div style="font-size:10px;color:#aaa;margin-top:4px;">선택 채널 각각 생성됨</div>';
+  }
+}
+
+</script>
+</body>
+</html>

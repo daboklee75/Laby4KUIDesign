@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LABY-4K 파일 관리</title>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px;color:#1a1a1a;}
+.wrap{border:1px solid #ddd;border-radius:12px;overflow:hidden;background:#fff;max-width:1280px;margin:0 auto;}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #eee;}
+.layout{display:flex;}
+.gnb{width:170px;flex-shrink:0;border-right:1px solid #eee;padding:10px 7px;display:flex;flex-direction:column;gap:2px;}
+.gi{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;font-size:12px;color:#666;}
+.gi.on{background:#f0f0f0;color:#1a1a1a;font-weight:500;}
+.gi.on .gi-icon{color:#1a1a1a;}
+.gi:hover .gi-icon{color:#555;}
+.gd{height:1px;background:#eee;margin:5px 3px;}
+.main{flex:1;min-width:0;padding:14px 15px;overflow:hidden;}
+.ptitle{font-size:15px;font-weight:500;margin:0 0 12px;}
+.tabs{display:flex;border-bottom:1px solid #eee;margin-bottom:14px;}
+.tab{padding:7px 13px;font-size:13px;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;}
+.tab.on{color:#1a1a1a;font-weight:500;border-bottom-color:#1a1a1a;}
+.sec{border:1px solid #eee;border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.sec-hd{display:flex;align-items:center;gap:7px;padding:8px 13px;background:#f8f8f8;border-bottom:1px solid #eee;}
+.sec-title{font-size:12px;font-weight:500;color:#555;}
+.bdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#fff;color:#666;border:1px solid #ddd;}
+.wbdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#fff8e6;color:#b26a00;}
+.rtbdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;}
+.sec-body{padding:13px 14px;}
+.cl{font-size:11px;font-weight:500;color:#aaa;letter-spacing:0.3px;margin:0 0 8px;}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.don{background:#22c55e;} .doff{background:#d1d5db;}
+
+/* MixAudio 테이블 */
+.mix-tbl{width:100%;border-collapse:separate;border-spacing:0;}
+.mix-tbl thead th{font-size:11px;font-weight:500;color:#aaa;padding:3px 8px;border-bottom:1px solid #eee;text-align:left;white-space:nowrap;}
+.mix-tbl tbody td{padding:5px 8px;border-bottom:1px solid #f4f4f4;vertical-align:middle;}
+.mix-tbl tbody tr:last-child td{border-bottom:none;}
+.mix-tbl tbody tr:hover{background:#fafafa;}
+.src-name{font-size:12px;font-weight:500;color:#333;}
+.sep-row td{padding:4px 8px;font-size:10px;font-weight:500;color:#888;background:#f8f8f8;border-top:1px solid #eee;border-bottom:1px solid #eee;}
+
+/* ON/OFF 토글 */
+.toggle{position:relative;display:inline-block;width:34px;height:18px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.tslider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ddd;border-radius:18px;transition:.2s;}
+.tslider:before{position:absolute;content:"";height:14px;width:14px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s;}
+input:checked+.tslider{background:#1d4ed8;}
+input:checked+.tslider:before{transform:translateX(16px);}
+
+/* 레벨 바 */
+.lv-wrap{display:flex;align-items:center;gap:6px;}
+.lv-track{flex:1;height:8px;background:#eee;border-radius:3px;overflow:hidden;min-width:80px;}
+.lv-fill{height:100%;border-radius:3px;transition:width 0.1s ease;}
+.lv-val{font-size:11px;width:36px;text-align:right;font-variant-numeric:tabular-nums;color:#555;flex-shrink:0;}
+
+/* 슬라이더 — 가늘게 */
+.sl-wrap{display:flex;align-items:center;gap:5px;}
+.sl-val{font-size:11px;width:22px;text-align:right;font-variant-numeric:tabular-nums;color:#555;}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  flex:1;height:2px;border-radius:2px;
+  background:#ddd;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:12px;height:12px;border-radius:50%;
+  background:#555;cursor:pointer;border:none;
+}
+input[type=range]::-moz-range-thumb{
+  width:12px;height:12px;border-radius:50%;
+  background:#555;cursor:pointer;border:none;
+}
+input[type=range]:hover::-webkit-slider-thumb{background:#1a1a1a;}
+.no-gain{font-size:11px;color:#ccc;text-align:center;display:block;}
+
+/* 무신호 화면 */
+.loss-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.loss-card{border:1px solid #eee;border-radius:8px;padding:12px;cursor:pointer;}
+.loss-card.sel{border-color:#555;background:#fafafa;}
+.loss-preview{aspect-ratio:16/9;max-height:80px;background:#111;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-top:8px;overflow:hidden;}
+.loss-settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.loss-setting-card{border:1px solid #eee;border-radius:8px;padding:12px;}
+.loss-setting-card.disabled{opacity:0.35;pointer-events:none;}
+.form-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.form-row:last-child{margin-bottom:0;}
+.form-label{width:52px;flex-shrink:0;font-size:12px;color:#666;}
+input[type=text]{flex:1;padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;}
+input[type=color]{width:32px;height:26px;border:1px solid #ddd;border-radius:4px;padding:1px;cursor:pointer;}
+.gain-title{font-size:12px;font-weight:500;color:#555;margin-bottom:10px;}
+
+/* 아이콘 크기 통일 */
+.gi-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;flex-shrink:0;color:#888;}
+.sec-icon{display:inline-block;width:16px;text-align:center;font-size:13px;flex-shrink:0;line-height:1;}
+
+
+/* 테스트 녹화 모달 */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:#fff;border-radius:14px;width:400px;max-width:95vw;box-shadow:0 24px 80px rgba(0,0,0,0.2);overflow:hidden;}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #eee;background:#fafafa;}
+.modal-title{font-size:14px;font-weight:500;}
+.modal-close{font-size:18px;cursor:pointer;color:#aaa;background:none;border:none;padding:0 4px;line-height:1;}
+.modal-body{padding:18px;display:flex;flex-direction:column;gap:16px;}
+.modal-section{display:flex;flex-direction:column;gap:8px;}
+.modal-label{font-size:11px;font-weight:600;color:#aaa;letter-spacing:0.4px;text-transform:uppercase;}
+/* 채널 선택 */
+.ch-check-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.ch-check{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.ch-check input{display:none;}
+.ch-check-box{width:48px;height:40px;border:1.5px solid #ddd;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#888;background:#fff;transition:all 0.15s;}
+.ch-check input:checked ~ .ch-check-box{border-color:#1e293b;background:#1e293b;color:#fff;}
+.ch-check-info{font-size:10px;color:#aaa;text-align:center;}
+/* 녹화 시간 */
+.time-btns{display:flex;gap:6px;}
+.time-btn{flex:1;padding:6px 0;font-size:12px;border:1.5px solid #ddd;border-radius:7px;background:#fff;color:#666;cursor:pointer;text-align:center;}
+.time-btn.on{border-color:#1e293b;background:#1e293b;color:#fff;font-weight:500;}
+/* 저장경로 */
+.path-display{font-size:12px;font-family:monospace;color:#555;background:#f5f5f5;padding:7px 10px;border-radius:6px;border:1px solid #eee;}
+/* 모달 푸터 */
+.modal-ft{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid #eee;background:#fafafa;}
+.modal-cancel{padding:7px 16px;font-size:13px;border:1px solid #ddd;border-radius:7px;background:#fff;cursor:pointer;color:#555;}
+.modal-start{padding:7px 20px;font-size:13px;font-weight:500;border:none;border-radius:7px;background:#1e293b;color:#fff;cursor:pointer;}
+.modal-start:hover{background:#0f172a;}bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;display:none;z-index:999;white-space:nowrap;}
+
+/* 아이콘 크기 통일 */
+.gi-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;flex-shrink:0;color:#888;}
+.sec-icon{display:inline-block;width:16px;text-align:center;font-size:13px;flex-shrink:0;line-height:1;}
+
+
+
+
+/* 녹화 상태 바 */
+.rec-bar{display:flex;align-items:center;gap:10px;padding:7px 16px;background:#1a1a1a;border-bottom:1px solid #333;}
+.rec-idle-lbl{font-size:12px;color:#888;}
+.rec-sp{flex:1;}
+.btn-rec-test{padding:4px 14px;font-size:12px;font-weight:500;border:1px solid #22c55e;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;cursor:pointer;}
+.rec-dot-r{width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0;animation:recblink 1.2s infinite;}
+@keyframes recblink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.rec-lbl{font-size:12px;font-weight:600;color:#ef4444;}
+.rec-div{width:1px;height:14px;background:#444;flex-shrink:0;}
+.rec-chs{font-size:12px;color:#fff;font-weight:500;}
+.rec-tlbl{font-size:11px;color:#888;}
+.rec-tval{font-size:12px;color:#d1d5db;font-variant-numeric:tabular-nums;font-family:monospace;}
+.rec-elapsed{font-size:13px;color:#fff;font-variant-numeric:tabular-nums;font-family:monospace;font-weight:500;}
+.rec-stop{padding:4px 14px;font-size:12px;font-weight:500;border:1px solid #ef4444;border-radius:6px;background:rgba(239,68,68,0.15);color:#ef4444;cursor:pointer;}
+/* 출력 구성 */
+.output-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;}
+.output-card{border:1px solid #eee;border-radius:8px;padding:12px 14px;}
+.output-card-title{font-size:12px;font-weight:600;color:#374151;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.output-icon{font-size:14px;}
+.output-sel{width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;cursor:pointer;}
+.output-cur{font-size:10px;color:#aaa;margin-top:5px;}
+.output-refresh-btn{font-size:11px;padding:3px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;cursor:pointer;}
+.output-refresh-btn:hover{background:#f5f5f5;}
+.output-status-row{display:flex;align-items:center;gap:5px;margin-top:5px;}
+.output-applied-dot{width:7px;height:7px;border-radius:50%;background:#d1d5db;flex-shrink:0;}
+.output-applied-dot.synced{background:#22c55e;}
+.output-applied-dot.diff{background:#f59e0b;}
+.btn-primary{display:inline-block;padding:5px 18px;font-size:12px;font-weight:500;
+  border:none;border-radius:6px;background:#1d4ed8;color:#fff;cursor:pointer;}
+.btn-primary:hover{background:#1e40af;}
+.fm-btn{padding:5px 14px;font-size:12px;font-weight:500;border:1px solid transparent;border-radius:6px;cursor:pointer;}
+.fm-btn-primary{background:#1d4ed8;color:#fff;}
+.fm-btn-primary:hover{background:#1e40af;}
+.fm-btn-gray{background:#f1f5f9;color:#374151;border-color:#ddd;}
+.fm-btn-gray:hover{background:#e2e8f0;}
+.fm-btn-red{background:#fff;border-color:#ef4444;color:#ef4444;}
+.fm-btn-red:hover{background:#fee2e2;}
+.fm-btn-green{background:#fff;border-color:#22c55e;color:#15803d;}
+.fm-inp{padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px;background:#fff;width:100%;}
+.fm-row{margin-bottom:8px;}
+.fm-lbl{font-size:10px;color:#aaa;display:block;margin-bottom:3px;}
+/* 업로드 서버 */
+.up-cards{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.up-card{flex:1;min-width:150px;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px 12px;cursor:pointer;background:#fff;transition:border-color 0.12s;}
+.up-card:hover{border-color:#93c5fd;}
+.up-card.sel{border-color:#3b82f6;background:#eff6ff;}
+.up-type-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;display:inline-block;margin-bottom:5px;}
+.type-ftp{background:#dbeafe;color:#1d4ed8;}
+.type-sftp{background:#ede9fe;color:#6d28d9;}
+.type-panotop{background:#fef3c7;color:#92400e;}
+.type-ubion{background:#dcfce7;color:#15803d;}
+.up-card-meta{font-size:11px;color:#64748b;margin-top:2px;}
+.up-card-updated{font-size:10px;color:#cbd5e1;margin-top:3px;}
+.up-detail{display:none;border:1px solid #dbeafe;border-radius:8px;padding:14px 16px;background:#f8fafc;}
+.up-detail.show{display:block;}
+.up-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+/* 내부 FTP */
+.ftp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.ftp-dot-on{background:#22c55e;}
+.ftp-dot-off{background:#d1d5db;}
+.fm-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fm-card{border:1px solid #eee;border-radius:8px;padding:14px 16px;}
+.fm-card-title{font-size:12px;font-weight:600;color:#374151;margin-bottom:10px;}
+/* 파일 목록 */
+.file-item{border:1px solid #eee;border-radius:7px;padding:8px 12px;display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.file-name{font-size:12px;font-weight:500;color:#1e293b;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.file-meta{font-size:10px;color:#94a3b8;white-space:nowrap;}
+.file-actions{display:flex;gap:5px;flex-shrink:0;}
+
+.test-result{font-size:11px;padding:3px 8px;border-radius:5px;display:none;align-items:center;gap:5px;margin-left:6px;}
+.test-result.show{display:inline-flex;}
+.test-result.ok{background:#dcfce7;color:#15803d;}
+.test-result.fail{background:#fee2e2;color:#b91c1c;}
+.test-result.loading{background:#f1f5f9;color:#64748b;}
+
+
+
+
+
+
+.hist-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:11px;margin-bottom:4px;background:#f8fafc;}
+.hist-ok{border-left:3px solid #22c55e;}
+.hist-fail{border-left:3px solid #ef4444;}
+.hist-name{flex:1;color:#1e293b;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hist-size{color:#94a3b8;white-space:nowrap;}
+.hist-time{color:#94a3b8;white-space:nowrap;font-size:10px;}
+.hist-badge{font-size:10px;padding:1px 6px;border-radius:4px;white-space:nowrap;}
+.hist-badge-ok{background:#dcfce7;color:#15803d;}
+.hist-badge-fail{background:#fee2e2;color:#b91c1c;}
+
+.up-card-btns{display:flex;gap:4px;margin-top:8px;}
+.up-card-btn{flex:1;padding:6px 0;font-size:12px;font-weight:500;border:1.5px solid #e2e8f0;border-radius:6px;background:#fff;color:#374151;cursor:pointer;text-align:center;}
+.up-card-btn:hover{background:#f1f5f9;border-color:#cbd5e1;}
+.up-card-btn.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;font-weight:600;}
+
+/* 전송 이력 */
+.hist-transferring{background:#fffbeb;border-left:3px solid #f59e0b;}
+.hist-badge-transferring{background:#fef3c7;color:#92400e;}
+.hist-page{display:flex;align-items:center;gap:6px;margin-top:10px;justify-content:center;}
+.hist-page-btn{padding:3px 9px;font-size:11px;border:1px solid #e2e8f0;border-radius:5px;background:#fff;color:#374151;cursor:pointer;}
+.hist-page-btn:hover{background:#f1f5f9;}
+.hist-page-btn.on{background:#1d4ed8;color:#fff;border-color:#1d4ed8;font-weight:600;}
+.hist-page-info{font-size:11px;color:#94a3b8;}
+/* 상세 모달 */
+.hist-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;align-items:center;justify-content:center;}
+.hist-modal-bg.show{display:flex;}
+.hist-modal{background:#fff;border-radius:10px;width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
+.hist-modal-hd{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid #f1f5f9;}
+.hist-modal-title{font-size:13px;font-weight:600;color:#1e293b;flex:1;}
+.hist-modal-close{background:none;border:none;font-size:16px;color:#94a3b8;cursor:pointer;padding:0;}
+.hist-modal-body{padding:16px 18px;}
+.hist-detail-row{display:flex;gap:0;margin-bottom:8px;font-size:12px;}
+.hist-detail-lbl{width:110px;color:#94a3b8;flex-shrink:0;}
+.hist-detail-val{color:#1e293b;font-weight:500;word-break:break-all;}
+.hist-detail-val.mono{font-family:monospace;font-size:11px;}
+
+/* ── 파일 트리 ── */
+.tree-root{padding:8px 14px 14px;overflow-x:auto;}
+.tree-folder{margin-bottom:4px;}
+.tree-folder-hd{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;cursor:pointer;user-select:none;font-size:12px;font-weight:600;color:#374151;}
+.tree-folder-hd:hover{background:#f1f5f9;}
+.tree-folder-icon{font-size:14px;transition:transform 0.15s;}
+.tree-folder-icon.open{transform:rotate(0deg);}
+.tree-folder-children{margin-left:16px;border-left:1.5px solid #e2e8f0;padding-left:8px;margin-top:2px;min-width:0;}
+/* 파일 그룹 */
+.file-group{margin-bottom:8px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;min-width:0;}
+.file-group-hd{display:flex;align-items:center;gap:8px;padding:7px 12px;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:11px;}
+.file-group-icon{font-size:13px;}
+.file-group-name{font-weight:600;color:#374151;flex:1;}
+.file-group-count{font-size:10px;color:#94a3b8;}
+.file-group-pkg-btn{font-size:10px;padding:2px 10px;border:1px solid #3b82f6;border-radius:12px;color:#3b82f6;background:#fff;cursor:pointer;white-space:nowrap;}
+.file-group-pkg-btn:hover{background:#eff6ff;}
+/* 파일 행 */
+.file-row{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:11px;border-bottom:1px solid #f8fafc;}
+.file-row:last-child{border-bottom:none;}
+.file-row:hover{background:#f8fbff;}
+.file-icon{font-size:13px;flex-shrink:0;}
+.file-name{flex:1;color:#1e293b;font-family:monospace;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;max-width:300px;}
+.file-size{font-size:10px;color:#94a3b8;width:200px;text-align:right;flex-shrink:0;white-space:nowrap;}
+.file-updated{font-size:10px;color:#94a3b8;width:120px;text-align:center;flex-shrink:0;}
+.file-actions{display:flex;gap:4px;flex-shrink:0;width:168px;justify-content:flex-end;}
+.file-act-btn{font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;color:#64748b;}
+.file-act-btn:hover{border-color:#93c5fd;color:#1d4ed8;}
+.file-act-btn.del:hover{border-color:#fca5a5;color:#dc2626;}
+/* 패키지 선택 모달 */
+.pkg-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:9000;align-items:center;justify-content:center;}
+.pkg-modal-box{background:#fff;border-radius:10px;width:480px;max-width:92vw;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.15);}
+.pkg-modal-hd{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid #f1f5f9;font-size:13px;font-weight:600;color:#1e293b;}
+.pkg-modal-body{padding:14px 18px;}
+.pkg-file-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f8fafc;font-size:11px;}
+.pkg-file-row:last-child{border-bottom:none;}
+.pkg-modal-foot{display:flex;gap:8px;justify-content:flex-end;padding:12px 18px;border-top:1px solid #f1f5f9;}
+/* 저장소 */
+.stor-list{display:flex;flex-direction:column;gap:8px;padding:0 14px 14px;}
+.stor-item{border:1px solid #eee;border-radius:8px;padding:10px 12px;}
+.stor-item-hd{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap;}
+.stor-badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;}
+.stor-ready{background:#dcfce7;color:#15803d;}
+.stor-formatting{background:#fef9c3;color:#854d0e;}
+.stor-error{background:#fee2e2;color:#b91c1c;}
+.stor-primary-badge{background:#dbeafe;color:#1d4ed8;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;}
+.stor-name{font-size:12px;font-weight:600;color:#1e293b;}
+.stor-meta{font-size:11px;color:#888;margin-left:auto;}
+.stor-bar{height:4px;border-radius:2px;background:#e5e7eb;overflow:hidden;margin:5px 0 3px;}
+.stor-bar-fill{height:100%;border-radius:2px;background:#3b82f6;}
+.stor-bar-fill.warn{background:#f59e0b;}
+.stor-bar-fill.danger{background:#ef4444;}
+.stor-cap{font-size:10px;color:#aaa;}
+.stor-path{font-size:11px;color:#888;margin-top:3px;}
+.stor-actions{display:flex;gap:6px;margin-top:7px;justify-content:flex-end;}
+.stor-summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.stor-tag{font-size:10px;padding:2px 7px;border-radius:4px;background:#f1f5f9;color:#475569;font-family:monospace;}
+.stor-detail{display:none;margin-top:8px;border-top:1px solid #f1f5f9;padding-top:8px;}
+.stor-detail.show{display:block;}
+.stor-detail-table{width:100%;border-collapse:collapse;font-size:11px;}
+.stor-detail-table tr td{padding:3px 6px;border-bottom:1px solid #f8fafc;color:#374151;vertical-align:top;}
+.stor-detail-table tr td:first-child{color:#94a3b8;white-space:nowrap;width:110px;font-family:monospace;}
+.stor-detail-table tr td:last-child{color:#1e293b;}
+.storage-selector{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-wrap:wrap;}
+.storage-info-panel{padding:10px 14px;border-bottom:2px solid #e2e8f0;background:#fff;}
+</style>
+</head>
+<body>
+<div style="background:#1e293b;color:#94a3b8;font-size:10px;text-align:right;padding:3px 14px;letter-spacing:0.5px;">
+  화면설계서 <strong style="color:#e2e8f0;">ver 14</strong> &nbsp;·&nbsp; LABY-4K LabyConfig4K &nbsp;·&nbsp; 2026-08-06
+</div>
+<!-- 테스트 녹화 모달 -->
+<div class="modal-overlay" id="recModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title">테스트 녹화 시작</span>
+      <button class="modal-close" onclick="closeRecModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- 채널 선택 (main) -->
+      <div class="modal-section">
+        <span class="modal-label">녹화 채널 (main)</span>
+        <div class="ch-check-grid">
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch1" checked onchange="updateRecPreview()">
+            <div class="ch-check-box">CH1</div>
+            <span class="ch-check-info">FHD</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch2" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH2</div>
+            <span class="ch-check-info">FHD</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch3" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH3</div>
+            <span class="ch-check-info">idle</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-ch4" onchange="updateRecPreview()">
+            <div class="ch-check-box">CH4</div>
+            <span class="ch-check-info">idle</span>
+          </label>
+          <label class="ch-check">
+            <input type="checkbox" id="rc-host" onchange="updateRecPreview()">
+            <div class="ch-check-box">Scene</div>
+            <span class="ch-check-info">Mix</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- sub 포함 여부 -->
+      <div class="modal-section">
+        <span class="modal-label">sub 스트림</span>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:#555;">
+          <input type="checkbox" id="rc-sub" onchange="updateRecPreview()"
+            style="width:15px;height:15px;accent-color:#475569;cursor:pointer;">
+          선택된 채널의 sub 함께 녹화
+          <span style="font-size:11px;color:#aaa;">(UHD 백업용)</span>
+        </label>
+      </div>
+
+      <!-- 시간 제한 -->
+      <div class="modal-section">
+        <span class="modal-label">시간 제한</span>
+        <div class="time-btns">
+          <div class="time-btn" onclick="selectTime(this,30)">30초</div>
+          <div class="time-btn on" onclick="selectTime(this,60)">60초</div>
+          <div class="time-btn" onclick="selectTime(this,120)">2분</div>
+          <div class="time-btn" onclick="selectTime(this,0)">제한 없음</div>
+        </div>
+      </div>
+
+      <!-- 예상 저장 경로 -->
+      <div class="modal-section">
+        <span class="modal-label">예상 저장 경로</span>
+        <div id="rec-paths" style="display:flex;flex-direction:column;gap:4px;"></div>
+        <div style="font-size:10px;color:#bbb;margin-top:4px;">경로 패턴은 설정프로그램에 정의된 규칙 적용</div>
+      </div>
+
+    </div>
+    <div class="modal-ft">
+      <button class="modal-cancel" onclick="closeRecModal()">취소</button>
+      <button class="modal-start" onclick="confirmStartRec()">▶ 녹화 시작</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="toast"></div>
+<!-- 전송 이력 상세 모달 -->
+<div class="hist-modal-bg" id="hist-modal-bg" onclick="if(event.target===this)closeHistModal()">
+  <div class="hist-modal">
+    <div class="hist-modal-hd">
+      <span class="hist-modal-title">전송 이력 상세</span>
+      <button class="hist-modal-close" onclick="closeHistModal()">✕</button>
+    </div>
+    <div class="hist-modal-body" id="hist-modal-body"></div>
+  </div>
+</div>
+
+<div class="wrap">
+<div class="pkg-modal" id="pkg-modal">
+          <div class="pkg-modal-box">
+            <div class="pkg-modal-hd">
+              📦 LabyPlayer 패키지 다운로드
+              <span style="flex:1;"></span>
+              <button onclick="closePkgModal()" style="background:none;border:none;font-size:16px;color:#94a3b8;cursor:pointer;">✕</button>
+            </div>
+            <div class="pkg-modal-body">
+              <div style="font-size:11px;color:#64748b;margin-bottom:10px;">포함할 파일을 선택하세요. <code>labyplayer.html</code>과 함께 패키지로 다운로드됩니다.</div>
+              <div id="pkg-file-list"></div>
+            </div>
+            <div class="pkg-modal-foot">
+              <button class="fm-btn fm-btn-gray" onclick="closePkgModal()">취소</button>
+              <button class="fm-btn fm-btn-primary" onclick="downloadPackage()">📦 패키지 다운로드</button>
+            </div>
+          </div>
+        </div>
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:7px;font-size:14px;font-weight:500;">📹 LABY-4K 설정프로그램</div>
+    <div style="display:flex;align-items:center;gap:9px;">
+      <a href="laby4k_wizard_v1.html" style="font-size:12px;padding:4px 10px;border:1px solid #93c5fd;border-radius:6px;background:#eff6ff;color:#1d4ed8;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">⚡ 간편설정</a>
+      <button id="identify-btn" onclick="identifyDevice()" style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;font-weight:500;cursor:pointer;">🔦 녹화기 확인</button>
+      <span style="font-size:12px;color:#888;background:#f5f5f5;padding:3px 9px;border-radius:6px;">● IDLE</span>
+      <button style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;">로그아웃</button>
+    </div>
+  </div>
+  <div class="rec-bar" id="rec-bar">
+    <!-- 대기 상태 -->
+    <div id="rec-idle" style="display:flex;align-items:center;gap:10px;width:100%;">
+      <span class="rec-idle-lbl">● 녹화 대기 중</span>
+      <span class="rec-sp"></span>
+      <button class="btn-rec-test" onclick="openRecModal()">▶ 테스트 녹화 시작</button>
+    </div>
+    <!-- 녹화 중 상태 -->
+    <div id="rec-active" style="display:none;align-items:center;gap:10px;width:100%;">
+      <span class="rec-dot-r"></span>
+      <span class="rec-lbl">REC</span>
+      <span class="rec-div"></span>
+      <span class="rec-chs" id="rec-channels">CH1</span>
+      <span class="rec-div"></span>
+      <span class="rec-tlbl">시작</span>
+      <span class="rec-tval" id="rec-start-time">—</span>
+      <span class="rec-div"></span>
+      <span class="rec-elapsed" id="rec-elapsed">00:00:00</span>
+      <span class="rec-sp"></span>
+      <button class="rec-stop" onclick="stopRecording()">■ 녹화 정지</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="gnb">
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="8" width="3.5" height="6.5" rx="0.5"/><rect x="6.2" y="4" width="3.5" height="10.5" rx="0.5"/><rect x="11.5" y="1" width="3.5" height="13.5" rx="0.5"/></svg></span>대시보드</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="12" height="8" rx="1.5"/><line x1="5" y1="4" x2="5" y2="2"/><line x1="11" y1="4" x2="11" y2="2"/><line x1="8" y1="12" x2="8" y2="14"/><line x1="5" y1="8" x2="11" y2="8"/></svg></span>입출력 설정</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="3" width="14" height="10" rx="1"/><line x1="1" y1="6.5" x2="15" y2="6.5"/><line x1="4" y1="3" x2="4" y2="6.5"/><line x1="8" y1="3" x2="8" y2="6.5"/><line x1="12" y1="3" x2="12" y2="6.5"/><line x1="4" y1="9.5" x2="4" y2="13"/><line x1="8" y1="9.5" x2="8" y2="13"/><line x1="12" y1="9.5" x2="12" y2="13"/></svg></span>씬</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="4" x2="15" y2="4"/><line x1="1" y1="8" x2="15" y2="8"/><line x1="1" y1="12" x2="15" y2="12"/><circle cx="5" cy="4" r="2" fill="white" stroke="currentColor"/><circle cx="11" cy="8" r="2" fill="white" stroke="currentColor"/><circle cx="7" cy="12" r="2" fill="white" stroke="currentColor"/></svg></span>인코딩 및 프로파일</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 5.5 C4 2.5 12 2.5 15 5.5"/><path d="M3.5 8.2 C5.5 6.2 10.5 6.2 12.5 8.2"/><path d="M6 10.5 C7 9.5 9 9.5 10 10.5"/><circle cx="8" cy="13" r="1.2" fill="currentColor" stroke="none"/></svg></span>스트리밍</div>
+      <div class="gi"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg></span>녹화 및 저장</div>
+      <div class="gi" onclick="showPage&&showPage('upload')" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></span>업로드</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="12" cy="10" r="3"/></svg></span>기기 녹화 설정</div>
+      <div class="gd"></div>
+      <div class="gi on" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>파일 관리</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg></span>계정</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.5"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/><line x1="2.9" y1="2.9" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="13.1" y2="13.1"/><line x1="2.9" y1="13.1" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="13.1" y2="2.9"/></svg></span>시스템 및 네트워크</div>
+    </div>
+    <div class="main">
+      <div class="page-hd"><span class="page-title">파일 관리</span></div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="sec">
+          <div class="sec-hd">
+            <span class="sec-title"><span class="sec-icon">📁</span>파일 목록</span>
+            <span style="font-size:10px;color:#aaa;margin-left:8px;">장비에 저장된 녹화 파일</span>
+
+          </div>
+          <!-- 저장소 선택 -->
+          <div class="storage-selector">
+            <span style="font-size:11px;font-weight:600;color:#374151;white-space:nowrap;">💾 저장소 선택</span>
+            <select class="fm-inp" id="storage-sel" style="width:auto;font-size:11px;padding:4px 10px;" onchange="onStorageChange()">
+              <option value="ch1_nvme_1">NVMe SSD — CH1 (/data/ch1_nvme_1)</option>
+              <option value="chhost_sata_1">SATA HDD — Scene (/data/chhost_sata_1) ★ 주 저장소</option>
+              <option value="chhost_nvme_1">NVMe SSD — Scene (/mnt/chhost_nvme_1)</option>
+            </select>
+            <button class="fm-btn fm-btn-gray" style="font-size:11px;padding:3px 10px;" onclick="loadFiles()">↺ 새로고침</button>
+          </div>
+          <!-- 저장소 상세정보 -->
+          <div class="storage-info-panel" id="storage-info-panel"></div>
+          <div class="tree-root" id="file-list"></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function identifyDevice(){
+  var btn = document.getElementById('identify-btn');
+  if(!btn || btn.disabled) return;
+  btn.disabled = true;
+  showToast('POST ~/api/v1/system/identify · 장비 램프 점등');
+  var remain = 5;
+  btn.textContent = '🔦 램프 점등 중... ('+remain+'초)';
+  var timer = setInterval(function(){
+    remain -= 1;
+    if(remain <= 0){
+      clearInterval(timer);
+      btn.textContent = '🔦 녹화기 확인';
+      btn.disabled = false;
+      return;
+    }
+    btn.textContent = '🔦 램프 점등 중... ('+remain+'초)';
+  }, 1000);
+}
+
+var recStartTime = null;
+
+function showToast(msg){
+  var t=document.getElementById('toast');
+  if(!t) return;
+  t.textContent=msg; t.style.display='block';
+  clearTimeout(showToast._t);
+  showToast._t=setTimeout(function(){t.style.display='none';}
+,2500);
+}
+
+function openRecModal(){
+  updateRecPreview();
+  document.getElementById('recModal').classList.add('show');
+}
+
+function closeRecModal(){
+  document.getElementById('recModal').classList.remove('show');
+}
+
+function updateRecPreview(){
+  var chs=[];
+  ['ch1','ch2','ch3','ch4','host'].forEach(function(c){
+    if(document.getElementById('rc-'+c).checked) chs.push(c);
+  });
+  var withSub = document.getElementById('rc-sub').checked;
+  var d = new Date();
+  var ds = d.getFullYear().toString().slice(2)+
+    String(d.getMonth()+1).padStart(2,'0')+
+    String(d.getDate()).padStart(2,'0');
+  var ts = String(d.getHours()).padStart(2,'0')+
+           String(d.getMinutes()).padStart(2,'0')+
+           String(d.getSeconds()).padStart(2,'0');
+
+  var wrap = document.getElementById('rec-paths');
+  wrap.innerHTML = '';
+  if(!chs.length){
+    wrap.innerHTML='<div class="path-display" style="color:#ef4444;">채널을 선택해주세요</div>';
+    return;
+  }
+  var chStr = chs.length===1 ? chs[0] : chs.join('·');
+  var suffix = withSub ? '_*.mp4' : '_main.mp4';
+  wrap.innerHTML = '<div class="path-display">~/data/test/'+ds+'_'+ts+'_'+chStr+suffix+'</div>';
+  if(chs.length>1){
+    wrap.innerHTML += '<div style="font-size:10px;color:#aaa;margin-top:4px;">선택 채널 각각 생성됨</div>';
+  }
+}
+
+function confirmStartRec(){
+  var chs=[];
+  ['ch1','ch2','ch3','ch4','host'].forEach(function(c){
+    if(document.getElementById('rc-'+c).checked) chs.push(c.toUpperCase());
+  });
+  if(!chs.length){ showToast('채널을 선택해주세요'); return; }
+  var withSub = document.getElementById('rc-sub').checked;
+  var label = chs.join(' · ') + (withSub ? '  (+sub)' : '');
+  closeRecModal();
+  startRecording(label);
+  if(recTimeSec>0){
+    clearTimeout(recTimerIv);
+    recTimerIv=setTimeout(function(){
+      stopRecording();
+      showToast('⏱ 시간 제한 도달 — 녹화 자동 정지');
+    }, recTimeSec*1000);
+  }
+}
+
+function startRecording(channels){
+  recStartTime = new Date();
+  var ri=document.getElementById('rec-idle');
+  var ra=document.getElementById('rec-active');
+  if(ri) ri.style.display='none';
+  if(ra) ra.style.display='flex';
+  var elCh=document.getElementById('rec-channels');
+  var elSt=document.getElementById('rec-start-time');
+  if(elCh) elCh.textContent = channels || 'CH1';
+  if(elSt) elSt.textContent = recStartTime.toTimeString().slice(0,8);
+  recElapsedIv = setInterval(function(){
+    var sec = Math.floor((Date.now()-recStartTime)/1000);
+    var h=String(Math.floor(sec/3600)).padStart(2,'0');
+    var m=String(Math.floor((sec%3600)/60)).padStart(2,'0');
+    var s=String(sec%60).padStart(2,'0');
+    var elEl=document.getElementById('rec-elapsed');
+    if(elEl) elEl.textContent = h+':'+m+':'+s;
+  },1000);
+  showToast('▶ 테스트 녹화 시작 · POST ~/recording/start');
+}
+
+function stopRecording(){
+  clearInterval(recElapsedIv);
+  recStartTime = null;
+  var ra=document.getElementById('rec-active');
+  var ri=document.getElementById('rec-idle');
+  if(ra) ra.style.display='none';
+  if(ri) ri.style.display='flex';
+  showToast('■ 녹화 정지 · POST ~/recording/stop');
+}
+
+/* 업로드 서버 */
+var uploadConfigs=[
+  {type:'ftp', host:'49.50.163.24', port:'3321', path:'/', passive:true, enc:'UTF', user:'lab241', updated:'2026-07-10 14:32'},
+  {type:'sftp', host:'192.168.1.200', port:'22', path:'/upload', user:'backup', updated:'2026-07-08 09:00'},
+  {type:'panotop', ptUrl:'https://api.panotop.com/v1', ptCh:'ch_001', ptOrg:'org_lab241', updated:'2026-07-05 11:20'}
+];
+var selUpIdx=-1;
+var TYPE_LABEL={ftp:'FTP',sftp:'SFTP',panotop:'Panotop',ubion:'Ubion'};
+var TYPE_CLS={ftp:'type-ftp',sftp:'type-sftp',panotop:'type-panotop',ubion:'type-ubion'};
+
+var selMode=''; // 'config' or 'history'
+function renderUploadCards(){
+  var wrap=document.getElementById('up-cards'); if(!wrap) return;
+  var h='';
+  uploadConfigs.forEach(function(c,i){
+    var meta='';
+    if(c.type==='ftp'||c.type==='sftp') meta=c.host+':'+c.port+' → '+c.path;
+    else if(c.type==='panotop') meta=c.ptUrl;
+    var cls=TYPE_CLS[c.type]||'type-ftp';
+    var sel=(selUpIdx===i);
+    h+='<div class="up-card'+(sel?' sel':'')+'">';
+    h+='<span class="up-type-badge '+cls+'">'+TYPE_LABEL[c.type]+'</span>';
+    h+='<div class="up-card-meta">'+meta+'</div>';
+
+    h+='<div class="up-card-btns">';
+    h+='<button class="up-card-btn'+(sel&&selMode==='config'?' active':'')+'" onclick="openUpPanel('+i+',0)">설정</button>';
+    h+='<button class="up-card-btn'+(sel&&selMode==='history'?' active':'')+'" onclick="openUpPanel('+i+',1)">전송 이력</button>';
+    h+='</div></div>';
+  });
+  wrap.innerHTML=h;
+}
+
+function openUpPanel(i, modeArg){
+  var mode=modeArg===0||modeArg==='config'?'config':'history';
+  if(selUpIdx===i && selMode===mode){ closeUpDetail(); return; }
+  selUpIdx=i; selMode=mode;
+  renderUploadCards();
+  var c=uploadConfigs[i];
+  // 패널 전환
+  document.getElementById('panel-config').style.display=mode==='config'?'block':'none';
+  document.getElementById('panel-history').style.display=mode==='history'?'block':'none';
+  // 제목
+  document.getElementById('up-detail-title').textContent=TYPE_LABEL[c.type]+(mode==='config'?' 설정':' 전송 이력');
+  var upEl=document.getElementById('up-detail-updated');
+  if(upEl) upEl.textContent=mode==='config'?('최종 업데이트: '+c.updated):'';
+  // 설정 필드 채우기
+  if(mode==='config'){
+    document.getElementById('up-fields-ftp').style.display=(c.type==='ftp'||c.type==='sftp')?'block':'none';
+    document.getElementById('up-fields-panotop').style.display=c.type==='panotop'?'block':'none';
+    document.getElementById('up-fields-ubion').style.display=c.type==='ubion'?'block':'none';
+    var rp=document.getElementById('uf-row-passive'); if(rp) rp.style.display=c.type==='sftp'?'none':'flex';
+    var re2=document.getElementById('uf-row-enc'); if(re2) re2.style.display=c.type==='sftp'?'none':'block';
+    if(c.type==='ftp'||c.type==='sftp'){
+      document.getElementById('uf-host').value=c.host||'';
+      document.getElementById('uf-port').value=c.port||'';
+      document.getElementById('uf-path').value=c.path||'/';
+      document.getElementById('uf-id').value=c.user||'';
+      document.getElementById('uf-pw').value='';
+      var chk=document.getElementById('uf-passive'); if(chk) chk.checked=!!c.passive;
+      var enc=document.getElementById('uf-enc'); if(enc) enc.value=c.enc||'UTF';
+    } else if(c.type==='panotop'){
+      document.getElementById('uf-pt-url').value=c.ptUrl||'';
+      document.getElementById('uf-pt-ch').value=c.ptCh||'';
+      document.getElementById('uf-pt-org').value=c.ptOrg||'';
+    }
+    var tr=document.getElementById('test-result'); if(tr) tr.classList.remove('show');
+  } else {
+    loadHistory();
+  }
+  var daf = document.getElementById('uf-delete-after');
+  if(daf){ daf.checked = !!c.deleteAfterUpload; toggleDeleteAfter(daf.checked); }
+  document.getElementById('up-detail').classList.add('show');
+}
+
+function showHistDetail(idx){
+  var c=uploadConfigs[selUpIdx];
+  var items=mockHistory[c.type]||[];
+  var d=items[idx]; if(!d) return;
+  var isXfer=d.ok==='transferring';
+  var statusHtml=isXfer?'<span class="hist-badge hist-badge-transferring">⏫ 전송 중</span>':
+    d.ok?'<span style="color:#22c55e;font-weight:600;">✅ 전송 완료</span>':
+    '<span style="color:#ef4444;font-weight:600;">❌ 실패 ('+d.errCode+')</span>';
+  var rows=[
+    ['상태', statusHtml],
+    ['콘텐츠명', d.title],
+    ['채널', d.ch],
+    ['파일명', '<span class="hist-detail-val mono">'+d.file+'</span>'],
+    ['파일 경로', '<span class="hist-detail-val mono">'+d.path+'</span>'],
+    ['파일 크기', fmtSize(d.size)],
+    ['전송 목적지', d.dest],
+    ['전송 시작', d.startTime||'—'],
+    ['전송 완료', d.endTime||'—'],
+    ['소요 시간', d.duration?d.duration+'초':'—'],
+    ['전송 속도', d.speed?d.speed+' MB/s':'—'],
+  ];
+  if(!d.ok&&!isXfer) rows.push(['에러 메시지', '<span style="color:#ef4444;">'+d.err+'</span>']);
+  var body='';
+  rows.forEach(function(r){
+    body+='<div class="hist-detail-row"><span class="hist-detail-lbl">'+r[0]+'</span><span class="hist-detail-val">'+r[1]+'</span></div>';
+  });
+  document.getElementById('hist-modal-body').innerHTML=body;
+  document.getElementById('hist-modal-bg').classList.add('show');
+}
+function closeHistModal(){ document.getElementById('hist-modal-bg').classList.remove('show'); }
+
+function closeUpDetail(){selUpIdx=-1;selMode='';document.getElementById('up-detail').classList.remove('show');renderUploadCards();}
+function saveUploadConfig(){
+  if(selUpIdx<0) return;
+  var c=uploadConfigs[selUpIdx];
+  var n=new Date(); var p=function(v){return String(v).padStart(2,'0');};
+  c.updated=n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(n.getDate())+' '+p(n.getHours())+':'+p(n.getMinutes());
+  if(c.type==='ftp'||c.type==='sftp'){c.host=document.getElementById('uf-host').value;c.port=document.getElementById('uf-port').value;c.path=document.getElementById('uf-path').value;c.user=document.getElementById('uf-id').value;}
+  else if(c.type==='panotop'){c.ptUrl=document.getElementById('uf-pt-url').value;c.ptCh=document.getElementById('uf-pt-ch').value;c.ptOrg=document.getElementById('uf-pt-org').value;}
+  renderUploadCards(); showToast('Gateway DB · '+TYPE_LABEL[c.type]+' 저장');
+}
+
+/* replaced */ function _old_daf(on){
+  var warn = document.getElementById('uf-delete-warn');
+  if(warn) warn.style.display = on ? 'block' : 'none';
+}
+
+function testConnection(){
+  if(selUpIdx<0) return;
+  var c=uploadConfigs[selUpIdx];
+  var btn=document.getElementById('test-btn');
+  var result=document.getElementById('test-result');
+  // 로딩 상태
+  btn.disabled=true; btn.textContent='테스트 중...';
+  result.className='test-result loading show';
+  result.textContent='⏳ 연결 중...';
+  // POST /api/cloud/test 시뮬레이션 (1.2초 후 응답)
+  setTimeout(function(){
+    btn.disabled=false; btn.textContent='연결 테스트';
+    var ok=Math.random()>0.3; // 시뮬레이션: 70% 성공
+    var latency=Math.floor(80+Math.random()*200);
+    var errors={
+      ftp:['인증 실패 - 아이디/비밀번호 확인','Host not reachable','경로를 찾을 수 없음'],
+      sftp:['SSH 핸드셰이크 실패','인증 실패','연결 시간 초과'],
+      panotop:['API Key 인증 실패','채널 ID를 찾을 수 없음','서버 응답 없음'],
+      ubion:['API Key 인증 실패','기관 코드 오류','서버 접속 불가']
+    };
+    if(ok){
+      result.className='test-result ok show';
+      result.textContent='✅ 연결 성공 ('+latency+'ms)';
+      showToast('POST /api/cloud/test · '+TYPE_LABEL[c.type]+' 연결 성공');
+    } else {
+      var errList=errors[c.type]||['연결 실패'];
+      var msg=errList[Math.floor(Math.random()*errList.length)];
+      result.className='test-result fail show';
+      result.textContent='❌ '+msg;
+      showToast('POST /api/cloud/test · '+TYPE_LABEL[c.type]+' 연결 실패: '+msg);
+    }
+    // 5초 후 자동 숨김
+    setTimeout(function(){ result.classList.remove('show'); },5000);
+  },1200);
+}
+function loadUploadConfigs(){showToast('Gateway DB · 업로드 서버 조회'); renderUploadCards();}
+
+/* 내부 FTP */
+function toggleInternalFtp(on){
+  var dot=document.getElementById('iftp-dot');
+  var lbl=document.getElementById('iftp-status-lbl');
+  if(dot) dot.className='ftp-dot '+(on?'ftp-dot-on':'ftp-dot-off');
+  if(lbl) lbl.textContent=on?'서비스 실행 중':'서비스 중지됨';
+  showToast('내부 FTP '+(on?'시작':'중지'));
+}
+function saveInternalFtp(){showToast('내부 FTP 서비스 설정 저장');}
+
+/* 파일 목록 */
+var mockFiles=[
+  {ch:'ch1',name:'CH1_20260710_143201.mp4',size:2147483648,date:'2026-07-10 14:32',state:'uploaded'},
+  {ch:'ch1',name:'CH1_20260710_151020.mp4',size:1073741824,date:'2026-07-10 15:10',state:'ready'},
+  {ch:'ch2',name:'CH2_20260710_143201.mp4',size:3221225472,date:'2026-07-10 14:32',state:'uploading'},
+  {ch:'chhost',name:'SCENE_20260709_100000.mp4',size:5368709120,date:'2026-07-09 10:00',state:'ready'},
+  {ch:'chhost',name:'SCENE_20260708_090000.mp4',size:4294967296,date:'2026-07-08 09:00',state:'uploaded'}
+];
+var STATE_COLOR={uploaded:'#22c55e',ready:'#94a3b8',uploading:'#f59e0b'};
+var STATE_LBL={uploaded:'업로드 완료',ready:'업로드 대기',uploading:'업로드 중'};
+function fmtSize(b){if(b>=1e9)return (b/1e9).toFixed(1)+' GB'; return (b/1e6).toFixed(0)+' MB';}
+
+function playFile(i){var f=document.getElementById('file-list')._filtered[i]; showToast('POST ~/fileplay/start · '+f.name);}
+function uploadFile(i){var f=document.getElementById('file-list')._filtered[i]; showToast('FTP Push 업로드: '+f.name);}
+function deleteFile(i){var f=document.getElementById('file-list')._filtered[i]; if(!confirm('['+f.name+'] 삭제?')) return; showToast('파일 삭제: '+f.name);}
+
+
+
+var mockHistory={
+  ftp:[
+    {file:'CH1_20260721_170000.mp4',path:'/data/records/ch1/CH1_20260721_170000.mp4',title:'2학기 1주차 운영체제 강의',ch:'CH1',size:1610612736,startTime:'2026-07-21 17:00:05',endTime:null,date:'2026-07-21 17:00',duration:null,dest:'49.50.163.24/',ok:'transferring',speed:8.4},
+    {file:'CH1_20260721_143201.mp4',path:'/data/records/ch1/CH1_20260721_143201.mp4',title:'1학기 16주차 자료구조 마무리',ch:'CH1',size:2147483648,startTime:'2026-07-21 14:38:02',endTime:'2026-07-21 14:38:44',date:'2026-07-21 14:38',duration:42,dest:'49.50.163.24/',ok:true,speed:49.2},
+    {file:'CH2_20260721_143201.mp4',path:'/data/records/ch2/CH2_20260721_143201.mp4',title:'1학기 16주차 자료구조 마무리',ch:'CH2',size:1536870912,startTime:'2026-07-21 14:39:10',endTime:'2026-07-21 14:39:46',date:'2026-07-21 14:39',duration:36,dest:'49.50.163.24/',ok:true,speed:41.2},
+    {file:'CH1_20260720_091500.mp4',path:'/data/records/ch1/CH1_20260720_091500.mp4',title:'1학기 15주차 알고리즘 개론',ch:'CH1',size:1073741824,startTime:'2026-07-20 09:22:05',endTime:'2026-07-20 09:22:23',date:'2026-07-20 09:22',duration:18,dest:'49.50.163.24/',ok:true,speed:57.8},
+    {file:'SCENE_20260720_100000.mp4',path:'/data/records/chhost/SCENE_20260720_100000.mp4',title:'특강 - 소프트웨어 설계 패턴',ch:'Scene',size:5368709120,startTime:'2026-07-20 10:09:00',endTime:null,date:'2026-07-20 10:09',duration:null,dest:'49.50.163.24/',ok:false,err:'연결 시간 초과',errCode:'ERR_TIMEOUT'},
+    {file:'CH1_20260719_150000.mp4',path:'/data/records/ch1/CH1_20260719_150000.mp4',title:'1학기 14주차 네트워크 보안',ch:'CH1',size:3221225472,startTime:'2026-07-19 15:12:01',endTime:'2026-07-19 15:13:08',date:'2026-07-19 15:12',duration:67,dest:'49.50.163.24/',ok:true,speed:46.3},
+    {file:'CH3_20260719_150000.mp4',path:'/data/records/ch3/CH3_20260719_150000.mp4',title:'1학기 14주차 네트워크 보안',ch:'CH3',size:2097152000,startTime:'2026-07-19 15:13:15',endTime:'2026-07-19 15:13:59',date:'2026-07-19 15:13',duration:44,dest:'49.50.163.24/',ok:true,speed:45.8},
+    {file:'CH1_20260718_100000.mp4',path:'/data/records/ch1/CH1_20260718_100000.mp4',title:'1학기 13주차 데이터베이스 설계',ch:'CH1',size:1610612736,startTime:'2026-07-18 10:08:30',endTime:null,date:'2026-07-18 10:08',duration:null,dest:'49.50.163.24/',ok:false,err:'경로를 찾을 수 없음',errCode:'ERR_PATH'},
+    {file:'CH2_20260717_140000.mp4',path:'/data/records/ch2/CH2_20260717_140000.mp4',title:'1학기 12주차 운영체제 심화',ch:'CH2',size:2684354560,startTime:'2026-07-17 14:05:02',endTime:'2026-07-17 14:05:53',date:'2026-07-17 14:05',duration:51,dest:'49.50.163.24/',ok:true,speed:50.6},
+    {file:'SCENE_20260716_090000.mp4',path:'/data/records/chhost/SCENE_20260716_090000.mp4',title:'오리엔테이션 특강',ch:'Scene',size:4294967296,startTime:'2026-07-16 09:10:11',endTime:'2026-07-16 09:11:55',date:'2026-07-16 09:10',duration:104,dest:'49.50.163.24/',ok:true,speed:39.8},
+  ],
+  sftp:[
+    {file:'SCENE_20260721_100000.mp4',path:'/data/records/chhost/SCENE_20260721_100000.mp4',title:'글로벌캠퍼스 특강 1강',ch:'Scene',size:4294967296,startTime:'2026-07-21 10:45:00',endTime:'2026-07-21 10:46:28',date:'2026-07-21 10:45',duration:88,dest:'192.168.1.200/upload',ok:true,speed:46.8},
+    {file:'CH1_20260720_091500.mp4',path:'/data/records/ch1/CH1_20260720_091500.mp4',title:'글로벌캠퍼스 1주차 강의',ch:'CH1',size:1073741824,startTime:'2026-07-20 09:30:00',endTime:null,date:'2026-07-20 09:30',duration:null,dest:'192.168.1.200/upload',ok:false,err:'인증 실패',errCode:'ERR_AUTH'},
+    {file:'SCENE_20260719_150000.mp4',path:'/data/records/chhost/SCENE_20260719_150000.mp4',title:'글로벌캠퍼스 특강 예비강의',ch:'Scene',size:3221225472,startTime:'2026-07-19 15:20:00',endTime:'2026-07-19 15:21:14',date:'2026-07-19 15:20',duration:74,dest:'192.168.1.200/upload',ok:true,speed:41.6},
+    {file:'CH2_20260718_090000.mp4',path:'/data/records/ch2/CH2_20260718_090000.mp4',title:'글로벌캠퍼스 사전 강의',ch:'CH2',size:1536870912,startTime:'2026-07-18 09:15:00',endTime:'2026-07-18 09:15:32',date:'2026-07-18 09:15',duration:32,dest:'192.168.1.200/upload',ok:true,speed:46.2},
+  ],
+  panotop:[
+    {file:'CH1_20260721_143201.mp4',path:'/data/records/ch1/CH1_20260721_143201.mp4',title:'파노톱 업로드 강의 16강',ch:'CH1',size:2147483648,startTime:'2026-07-21 14:40:00',endTime:'2026-07-21 14:40:55',date:'2026-07-21 14:40',duration:55,dest:'panotop/ch_001',ok:true,speed:37.6},
+    {file:'CH2_20260721_143201.mp4',path:'/data/records/ch2/CH2_20260721_143201.mp4',title:'파노톱 업로드 강의 16강',ch:'CH2',size:1536870912,startTime:'2026-07-21 14:42:00',endTime:'2026-07-21 14:42:40',date:'2026-07-21 14:42',duration:40,dest:'panotop/ch_001',ok:true,speed:36.8},
+    {file:'CH1_20260720_091500.mp4',path:'/data/records/ch1/CH1_20260720_091500.mp4',title:'파노톱 업로드 강의 15강',ch:'CH1',size:1073741824,startTime:'2026-07-20 09:25:00',endTime:'2026-07-20 09:25:28',date:'2026-07-20 09:25',duration:28,dest:'panotop/ch_001',ok:true,speed:36.9},
+    {file:'CH1_20260719_100000.mp4',path:'/data/records/ch1/CH1_20260719_100000.mp4',title:'파노톱 업로드 강의 14강',ch:'CH1',size:2684354560,startTime:'2026-07-19 10:10:00',endTime:null,date:'2026-07-19 10:10',duration:null,dest:'panotop/ch_001',ok:false,err:'API Key 인증 실패',errCode:'ERR_AUTH'},
+  ]
+};
+var histPage=1; var histPageSize=10;
+
+function fmtBytes(b){if(b>=1e9)return (b/1e9).toFixed(1)+' GB'; return (b/1e6).toFixed(0)+' MB';}
+
+function loadHistory(page){
+  if(page) histPage=page;
+  var list=document.getElementById('hist-list'); if(!list||selUpIdx<0) return;
+  var c=uploadConfigs[selUpIdx];
+  var items=mockHistory[c.type]||[];
+  if(!items.length){list.innerHTML='<div style="font-size:12px;color:#aaa;padding:12px;">전송 이력 없음</div>';return;}
+  var total=items.length;
+  var totalPages=Math.ceil(total/histPageSize);
+  if(histPage>totalPages) histPage=totalPages;
+  var start=(histPage-1)*histPageSize; var end=Math.min(start+histPageSize,total);
+  var paged=items.slice(start,end);
+  var h='<div style="overflow-x:auto;">';
+  h+='<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+  h+='<thead><tr style="border-bottom:2px solid #e2e8f0;color:#94a3b8;">';
+  h+='<th style="padding:6px 8px;text-align:left;font-weight:500;white-space:nowrap;">상태</th>';
+  h+='<th style="padding:6px 8px;text-align:left;font-weight:500;">파일명</th>';
+  h+='<th style="padding:6px 8px;text-align:left;font-weight:500;">콘텐츠명</th>';
+  h+='<th style="padding:6px 8px;text-align:right;font-weight:500;">용량</th>';
+  h+='<th style="padding:6px 8px;text-align:right;font-weight:500;white-space:nowrap;">전송일시</th>';
+  h+='<th style="padding:6px 8px;"></th>';
+  h+='</tr></thead><tbody>';
+  paged.forEach(function(d,i){
+    var actualIdx=start+i;
+    var isXfer=d.ok==='transferring';
+    var rowBg=(!isXfer&&!d.ok)?'background:#fff5f5;':'';
+    var rowCls=isXfer?'hist-transferring':'';
+    h+='<tr style="border-bottom:1px solid #f1f5f9;'+rowBg+'" class="'+rowCls+'">';
+    // 상태 (소요시간→상태)
+    if(isXfer)       h+='<td style="padding:6px 8px;"><span class="hist-badge hist-badge-transferring">⏫ 전송 중</span></td>';
+    else if(d.ok)    h+='<td style="padding:6px 8px;"><span class="hist-badge hist-badge-ok">✅ 완료 '+d.duration+'초</span></td>';
+    else             h+='<td style="padding:6px 8px;"><span class="hist-badge hist-badge-fail">❌ '+d.err+'</span></td>';
+    // 파일명
+    h+='<td style="padding:6px 8px;color:#374151;font-family:monospace;font-size:10px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+d.file+'</td>';
+    // 콘텐츠명
+    h+='<td style="padding:6px 8px;color:#1e293b;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+d.title+'</td>';
+    // 용량
+    h+='<td style="padding:6px 8px;text-align:right;color:#64748b;white-space:nowrap;">'+fmtSize(d.size)+'</td>';
+    // 전송일시
+    h+='<td style="padding:6px 8px;text-align:right;color:#94a3b8;white-space:nowrap;font-size:10px;">'+d.date+'</td>';
+    // 상세
+    h+='<td style="padding:6px 8px;"><button class="fm-btn fm-btn-gray" style="font-size:10px;padding:2px 7px;white-space:nowrap;" onclick="showHistDetail('+actualIdx+')">상세</button></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div class="hist-page">';
+  h+='<button class="hist-page-btn" onclick="loadHistory('+(histPage>1?histPage-1:1)+')" '+(histPage===1?'disabled style="opacity:0.4;"':'')+'>‹ 이전</button>';
+  for(var p=1;p<=totalPages;p++){
+    h+='<button class="hist-page-btn'+(p===histPage?' on':'')+'" onclick="loadHistory('+p+')">'+p+'</button>';
+  }
+  h+='<button class="hist-page-btn" onclick="loadHistory('+(histPage<totalPages?histPage+1:totalPages)+')" '+(histPage===totalPages?'disabled style="opacity:0.4;"':'')+'>다음 ›</button>';
+  h+='<span class="hist-page-info">'+(start+1)+'–'+end+' / '+total+'건</span>';
+  h+='</div>';
+  list.innerHTML=h;
+}
+
+window.onload=function(){ renderStorageInfo(); loadFiles(); };
+
+function toggleDeleteAfter(on){
+  var warn = document.getElementById('daf-warn');
+  if(warn) warn.style.display = on ? 'block' : 'none';
+}
+function saveDaf(){
+  var on = document.getElementById('daf-toggle').checked;
+  showToast && showToast('업로드 후 자동 삭제: '+(on?'ON':'OFF')+' (deleteafterupload)');
+}
+
+
+/* ── 파일 트리 목록 ── */
+var mockFileTree = [
+  { path: 'LOCAL_SCALI/260710/CH1_20260710_143201.mp4',  size: 1258, ch:'ch1',    type:'mp4',  updated:'2026-07-10 14:35' },
+  { path: 'LOCAL_SCALI/260710/CH2_20260710_143201.mp4',  size: 980,  ch:'ch2',    type:'mp4',  updated:'2026-07-10 14:35' },
+  { path: 'LOCAL_SCALI/260710/Mix_20260710_143201.mp4',  size: 2148, ch:'chhost', type:'mp4',  updated:'2026-07-10 14:36' },
+  { path: 'LOCAL_SCALI/260710/CH1_20260710_153000.mp4',  size: 1024, ch:'ch1',    type:'mp4',  updated:'2026-07-10 15:42' },
+  { path: 'LOCAL_SCALI/260710/CH3_20260710_153000.mp4',  size: 890,  ch:'ch3',    type:'mp4',  updated:'2026-07-10 15:42' },
+  { path: 'LOCAL_SCALI/260709/CH1_20260709_090000.mp4',  size: 850,  ch:'ch1',    type:'mp4',  updated:'2026-07-09 09:15' },
+  { path: 'LOCAL_SCALI/260709/CH2_20260709_090000.mp4',  size: 760,  ch:'ch2',    type:'mp4',  updated:'2026-07-09 09:15' },
+  { path: 'LOCAL_SCALI/260709/Mix_20260709_090000.mp4',  size: 1900, ch:'chhost', type:'mp4',  updated:'2026-07-09 09:16' },
+  { path: 'LOCAL_SCALI/260708/CH1_20260708_110000.mp4',  size: 640,  ch:'ch1',    type:'mp4',  updated:'2026-07-08 11:22' },
+  { path: 'LOCAL_SCALI/260708/rec_log_20260708.txt',     size: 2,    ch:'ch1',    type:'txt',  updated:'2026-07-08 11:22' },
+  { path: 'LOCAL_SCALI/260708/rec_meta_20260708.json',   size: 1,    ch:'ch1',    type:'json', updated:'2026-07-08 11:22' },
+];
+
+var currentPkgGroup = [];
+var pkgGroups = {};
+
+
+function getFileIcon(f){
+  var t = (f.type||'').toLowerCase();
+  var n = (f.name||f.path||'').toLowerCase();
+  if(t==='mp4'||n.endsWith('.mp4')) return '🎬';
+  if(n.endsWith('.txt')) return '📄';
+  if(n.endsWith('.json')) return '📋';
+  if(n.endsWith('.log')) return '🗒';
+  return '📎';
+}
+
+function fmtMB(mb){
+  var label = mb>=1024 ? (mb/1024).toFixed(1)+' GB' : mb+' MB';
+  var bytes = (mb*1024*1024).toLocaleString()+' B';
+  return label+'<span style="font-size:9px;color:#cbd5e1;margin-left:4px;">('+bytes+')</span>';
+}
+
+function getTimestamp(fname){
+  var m = fname.match(/_(\d{8}_\d{6})\.mp4$/i);
+  return m ? m[1] : fname;
+}
+
+function loadFiles(){
+  var ch = (document.getElementById('file-ch-sel')||{value:'all'}).value;
+  var sort = (document.getElementById('file-sort')||{value:'date_desc'}).value;
+  var list = document.getElementById('file-list'); if(!list) return;
+
+  var files = ch==='all' ? mockFileTree : mockFileTree.filter(function(f){ return f.ch===ch; });
+
+  // 정렬
+  files = files.slice().sort(function(a,b){
+    if(sort==='date_asc')  return a.path < b.path ? -1 : 1;
+    if(sort==='name')      return a.path.split('/').pop() < b.path.split('/').pop() ? -1 : 1;
+    return a.path < b.path ? 1 : -1;
+  });
+
+  if(!files.length){ list.innerHTML='<div style="padding:20px;text-align:center;color:#aaa;font-size:12px;">파일 없음</div>'; return; }
+
+  // 트리 구조 생성
+  var tree = {};
+  files.forEach(function(f){
+    var parts = f.path.split('/');
+    var root = parts[0], folder = parts[1], fname = parts[2];
+    if(!tree[root]) tree[root] = {};
+    if(!tree[root][folder]) tree[root][folder] = [];
+    tree[root][folder].push({name:fname, size:f.size, ch:f.ch, path:f.path, type:f.type||'', updated:f.updated||''});
+  });
+
+  var h = '';
+  Object.keys(tree).forEach(function(root){
+    h += renderFolder(root, tree[root], 0);
+  });
+  list.innerHTML = h;
+}
+
+function renderFolder(name, children, depth){
+  var isObj = typeof children === 'object' && !Array.isArray(children);
+  var indent = depth * 14;
+  var h = '<div class="tree-folder">';
+  h += '<div class="tree-folder-hd" style="margin-left:'+indent+'px;" onclick="toggleFolder(this)">';
+  h += '<span class="tree-folder-icon open">▾</span>';
+  h += '<span style="font-size:14px;">📁</span>';
+  h += '<span>'+name+'</span>';
+  h += '</div>';
+  h += '<div class="tree-folder-children">';
+
+  if(isObj){
+    // 하위 폴더
+    Object.keys(children).forEach(function(sub){
+      h += renderSubFolder(sub, children[sub]);
+    });
+  }
+  h += '</div></div>';
+  return h;
+}
+
+function renderSubFolder(name, files){
+  pkgGroups = {};
+
+  // 타임스탬프 기준 그룹핑
+  var groups = {};
+  files.forEach(function(f){
+    var ts = getTimestamp(f.name);
+    if(!groups[ts]) groups[ts]=[];
+    groups[ts].push(f);
+  });
+
+  var h = '<div class="tree-folder" style="margin-bottom:6px;">';
+  h += '<div class="tree-folder-hd" onclick="toggleFolder(this)">';
+  h += '<span class="tree-folder-icon open">▾</span>';
+  h += '<span style="font-size:14px;margin-right:4px;">📁</span>';
+  h += '<span>'+name+'</span>';
+  h += '</div>';
+  h += '<div class="tree-folder-children">';
+
+  var gIdx = 0;
+  Object.keys(groups).sort().reverse().forEach(function(ts){
+    var grpFiles = groups[ts];
+    // mp4 파일만 패키징 대상
+    var mp4Files = grpFiles.filter(function(f){ return (f.type==='mp4'||(f.name||'').endsWith('.mp4')); });
+    var showPkg = mp4Files.length > 1;
+
+    // 그룹이 mp4 1개 + 텍스트파일만이면 그룹 헤더 없이 단순 파일 목록
+    var needGroup = showPkg || mp4Files.length > 0;
+
+    if(needGroup && showPkg){
+      // 패키지 그룹 헤더 표시
+      var totalSize = mp4Files.reduce(function(s,f){ return s+f.size; }, 0);
+      pkgGroups[gIdx] = mp4Files;
+      h += '<div class="file-group">';
+      h += '<div class="file-group-hd">';
+      h += '<span class="file-group-icon">📦</span>';
+      h += '<span class="file-group-name">'+ts.replace('_',' ')+'</span>';
+      h += '<span class="file-group-count">'+mp4Files.length+'개 · '+fmtMB(totalSize)+'</span>';
+      h += '<span style="flex:1;"></span>';
+      h += '<button class="file-group-pkg-btn" onclick="openPkgModal('+gIdx+')">📦 LabyPlayer 패키지</button>';
+      h += '</div>';
+      gIdx++;
+    } else {
+      // 그룹 헤더 없이 바로 파일 목록
+      h += '<div class="file-group">';
+    }
+
+    grpFiles.forEach(function(f){
+      var isMp4 = f.type==='mp4'||(f.name||'').endsWith('.mp4');
+      h += '<div class="file-row" style="flex-wrap:nowrap;align-items:center;">';
+      h += '<span class="file-name" title="'+f.path+'">'+f.name+'</span>';
+      h += '<span class="file-updated">'+(f.updated||'—')+'</span>';
+      h += '<span class="file-size">'+fmtMB(f.size)+'</span>';
+      h += '<div class="file-actions">';
+      if(isMp4) h += '<button class="file-act-btn" onclick="playFile('+JSON.stringify(f.path)+')">▶ 재생</button>';
+      h += '<button class="file-act-btn" onclick="dlFile('+JSON.stringify(f.path)+')">⬇ 다운로드</button>';
+      h += '<button class="file-act-btn del" onclick="delFile('+JSON.stringify(f.path)+')">🗑</button>';
+      h += '</div></div>';
+    });
+    h += '</div>';
+  });
+
+  h += '</div></div>';
+  return h;
+}
+
+function toggleFolder(hd){
+  var icon = hd.querySelector('.tree-folder-icon');
+  var children = hd.nextElementSibling;
+  if(!children) return;
+  var open = children.style.display !== 'none';
+  children.style.display = open ? 'none' : 'block';
+  icon.textContent = open ? '▸' : '▾';
+}
+
+function playFile(path){
+  showToast && showToast('▶ 재생: '+path.split('/').pop());
+}
+function dlFile(path){
+  showToast && showToast('⬇ 다운로드: '+path.split('/').pop());
+}
+function delFile(path){
+  if(!confirm(path.split('/').pop()+' 을 삭제하시겠습니까?')) return;
+  showToast && showToast('🗑 삭제: '+path.split('/').pop());
+}
+
+/* ── 패키지 다운로드 ── */
+function openPkgModal(gIdx){
+  var files = pkgGroups[gIdx] || [];
+  currentPkgGroup = files;
+  var list = document.getElementById('pkg-file-list'); if(!list) return;
+  if(!files.length){ showToast&&showToast('파일 정보 없음'); return; }
+  var h='';
+  files.forEach(function(f,i){
+    h+='<div class="pkg-file-row">';
+    h+='<input type="checkbox" id="pkg-chk-'+i+'" checked style="width:15px;height:15px;cursor:pointer;">';
+    h+='<span style="font-size:13px;">🎬</span>';
+    h+='<span style="flex:1;font-family:monospace;color:#1e293b;">'+f.name+'</span>';
+    h+='<span style="font-size:10px;color:#94a3b8;">'+fmtMB(f.size)+'</span>';
+    h+='</div>';
+  });
+  list.innerHTML=h;
+  document.getElementById('pkg-modal').style.display='flex';
+}
+function closePkgModal(){
+  document.getElementById('pkg-modal').style.display='none';
+}
+function downloadPackage(){
+  var selected=[];
+  currentPkgGroup.forEach(function(f,i){
+    var chk=document.getElementById('pkg-chk-'+i);
+    if(chk&&chk.checked) selected.push(f.name);
+  });
+  if(!selected.length){ alert('파일을 선택해주세요.'); return; }
+  closePkgModal();
+  showToast && showToast('📦 패키지 다운로드: labyplayer.html + '+selected.join(', '));
+}
+
+window.onload=function(){ renderStorageInfo(); loadFiles(); };
+
+/* ── 저장소 선택 ── */
+var storageData=[
+  {id:'ch1_nvme_1',channel:'ch1',name:'nvme0n1',transport:'nvme',rota:false,
+    mountpoint:'/data/ch1_nvme_1',filesystem:'ext4',state:'ready',
+    capacity:{total:2000000000000,used:300000000000,available:1700000000000}},
+  {id:'chhost_sata_1',channel:'chhost',name:'sda',transport:'sata',rota:true,
+    mountpoint:'/data/chhost_sata_1',filesystem:'ext4',state:'ready',primary:true,
+    capacity:{total:4000000000000,used:1200000000000,available:2800000000000}},
+  {id:'chhost_nvme_1',channel:'chhost',name:'nvme0n1',transport:'nvme',rota:false,
+    mountpoint:'/mnt/chhost_nvme_1',filesystem:'ext4',state:'formatting',formatpct:50,
+    capacity:{total:1000000000000}}
+];
+var STATE_CLS={ready:'stor-ready',formatting:'stor-formatting',
+  unformatted:'stor-error',error:'stor-error'};
+var STATE_LABEL={ready:'사용 가능',unformatted:'포맷 필요',formatting:'포맷 중',
+  unsupported_filesystem:'미지원 FS',unmounted:'마운트 안됨',error:'오류'};
+
+
+function onStorageChange(){
+  renderStorageInfo();
+  loadFiles();
+}
+
+function renderStorageInfo(){
+  var sel = document.getElementById('storage-sel');
+  var panel = document.getElementById('storage-info-panel');
+  if(!sel||!panel) return;
+  var id = sel.value;
+  var d = storageData.find(function(s){ return s.id===id; });
+  if(!d){ panel.innerHTML=''; return; }
+
+  var cap=d.capacity||{};
+  var pct=cap.total&&cap.used?Math.round(cap.used/cap.total*100):0;
+  var barCls=pct>90?'danger':pct>70?'warn':'';
+  var chLbl=d.channel==='chhost'?'Scene':d.channel.toUpperCase();
+  var stCls=(STATE_CLS&&STATE_CLS[d.state])||'stor-error';
+  var stLbl=(STATE_LABEL&&STATE_LABEL[d.state])||d.state;
+
+  var h='<div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">';
+  // 상태 + 이름
+  h+='<div style="flex:1;min-width:200px;">';
+  h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">';
+  h+='<span class="stor-badge '+stCls+'">'+stLbl+'</span>';
+  if(d.primary) h+='<span class="stor-primary-badge">&#9733; 주 저장소</span>';
+  h+='<span class="stor-name">'+d.name+'</span>';
+  h+='<span style="font-size:10px;color:#aaa;padding:2px 6px;background:#f8fafc;border-radius:4px;">'+d.transport.toUpperCase()+(d.rota?' HDD':' SSD')+'</span>';
+  h+='</div>';
+  // 태그
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;font-size:10px;">';
+  h+='<span class="stor-tag">id: '+d.id+'</span>';
+  h+='<span class="stor-tag">avb: '+chLbl+'</span>';
+  h+='<span class="stor-tag">mountpoint: '+d.mountpoint+'</span>';
+  h+='<span class="stor-tag">uuid: '+(d.uuid||'—')+'</span>';
+  h+='</div></div>';
+
+  // 용량 바
+  if(d.state==='formatting'){
+    var pf=d.formatpct||0;
+    h+='<div style="min-width:200px;flex:1;">';
+    h+='<div style="font-size:11px;color:#854d0e;margin-bottom:4px;">&#9203; 포맷 진행 중 '+pf+'%</div>';
+    h+='<div class="stor-bar"><div class="stor-bar-fill warn" style="width:'+pf+'%;"></div></div>';
+    h+='</div>';
+  } else if(cap.total){
+    var avail=cap.available||0;
+    var used=cap.used||0;
+    h+='<div style="min-width:220px;flex:1;">';
+    h+='<div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b;margin-bottom:3px;">';
+    h+='<span>사용 '+fmtBytes(used)+'</span><span>여유 <strong>'+fmtBytes(avail)+'</strong> / 전체 '+fmtBytes(cap.total)+'</span>';
+    h+='</div>';
+    h+='<div class="stor-bar"><div class="stor-bar-fill '+barCls+'" style="width:'+pct+'%;"></div></div>';
+    h+='<div style="font-size:10px;color:#94a3b8;margin-top:2px;">사용률 '+pct+'%</div>';
+    h+='</div>';
+  }
+  h+='</div>';
+  panel.innerHTML=h;
+}
+
+</script>
+</body>
+</html>

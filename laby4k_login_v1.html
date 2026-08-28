@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LABY-4K 로그인</title>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px;color:#1a1a1a;}
+.wrap{border:1px solid #ddd;border-radius:12px;overflow:hidden;background:#fff;max-width:1280px;margin:0 auto;min-height:640px;display:flex;align-items:center;justify-content:center;}
+
+.login-card{width:340px;padding:36px 0;}
+.login-logo{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:600;margin-bottom:6px;justify-content:center;}
+.login-sub{font-size:11.5px;color:#aaa;text-align:center;margin-bottom:28px;}
+
+.panel{display:none;}
+.panel.active{display:block;}
+
+.sys-field{display:flex;flex-direction:column;gap:3px;margin-bottom:12px;}
+.sys-lbl{font-size:10.5px;color:#888;}
+.sys-inp{padding:9px 11px;border:1px solid #ddd;border-radius:7px;font-size:13px;background:#fff;width:100%;}
+.sys-inp:focus{outline:none;border-color:#93c5fd;}
+.field-hint{font-size:10px;color:#bbb;margin-top:1px;}
+
+.sys-btn-primary{width:100%;padding:10px;font-size:13px;font-weight:600;border:none;border-radius:7px;cursor:pointer;background:#1d4ed8;color:#fff;margin-top:6px;}
+.sys-btn-primary:hover{background:#1e40af;}
+.sys-btn-ghost{width:100%;padding:9px;font-size:12.5px;font-weight:500;border:1px solid #ddd;border-radius:7px;cursor:pointer;background:#fff;color:#555;margin-top:8px;}
+.sys-btn-ghost:hover{background:#f8f8f8;}
+
+.link-row{text-align:center;margin-top:14px;}
+.link-btn{font-size:11.5px;color:#2563eb;cursor:pointer;background:none;border:none;padding:0;}
+.link-btn:hover{text-decoration:underline;}
+
+.acc-row{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;padding:10px 12px;background:#f8fafc;border-radius:8px;}
+.acc-item{display:flex;align-items:center;gap:8px;}
+.acc-lbl{font-size:10.5px;color:#aaa;min-width:64px;}
+.acc-val{font-size:12.5px;font-weight:600;color:#1a1a1a;font-family:monospace;}
+.copy-btn{font-size:10.5px;padding:2px 8px;border:1px solid #ddd;border-radius:5px;background:#fff;cursor:pointer;color:#555;margin-left:auto;}
+.copy-btn:hover{background:#f4f4f4;}
+
+.panel-title{font-size:13.5px;font-weight:600;margin-bottom:4px;}
+.panel-desc{font-size:11px;color:#999;margin-bottom:16px;line-height:1.5;}
+
+.step-hint{font-size:10.5px;color:#bbb;text-align:center;margin-top:16px;}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;display:none;z-index:999;white-space:nowrap;}
+
+</style>
+</head>
+<body>
+<div style="background:#1e293b;color:#94a3b8;font-size:10px;text-align:right;padding:3px 14px;letter-spacing:0.5px;margin-bottom:0;">
+  화면설계서 <strong style="color:#e2e8f0;">ver 14</strong> &nbsp;·&nbsp; LABY-4K LabyConfig4K &nbsp;·&nbsp; 2026-08-06
+</div>
+
+<div class="wrap">
+  <div class="login-card">
+    <div class="login-logo">📹 LABY-4K</div>
+    <div class="login-sub">설정프로그램 로그인</div>
+
+    <!-- ① 로그인 -->
+    <div class="panel active" id="panel-login">
+      <div class="sys-field">
+        <span class="sys-lbl">아이디</span>
+        <input type="text" class="sys-inp" id="login-id" value="admin">
+      </div>
+      <div class="sys-field">
+        <span class="sys-lbl">비밀번호</span>
+        <input type="password" class="sys-inp" id="login-pw" placeholder="비밀번호 입력">
+      </div>
+      <button class="sys-btn-primary" onclick="doLogin()">로그인</button>
+      <div class="link-row">
+        <button class="link-btn" onclick="showPanel('forgot')">비밀번호 재설정</button>
+      </div>
+    </div>
+
+    <!-- ② 복구코드 입력 -->
+    <div class="panel" id="panel-forgot">
+      <div class="panel-title">비밀번호 재설정</div>
+      <div class="panel-desc">
+        아래 시리얼번호를 기술지원팀에 전달하면 이 장비 전용 복구코드를 받을 수 있습니다.<br>
+        복구코드는 장비마다 다르며, 다른 장비에는 사용할 수 없습니다.
+      </div>
+      <div class="acc-row">
+        <div class="acc-item">
+          <span class="acc-lbl">시리얼번호</span>
+          <span class="acc-val">1234567890</span>
+          <button class="copy-btn" onclick="copySerial()">복사</button>
+        </div>
+      </div>
+      <div class="sys-field">
+        <span class="sys-lbl">복구코드</span>
+        <input type="text" class="sys-inp" id="recovery-code" placeholder="XXXX-XXXX" style="font-family:monospace;letter-spacing:1px;">
+        <span class="field-hint">기술지원팀에서 발급받은 8자리 코드를 입력하세요</span>
+      </div>
+      <button class="sys-btn-primary" id="recovery-confirm-btn">확인</button>
+      <div class="link-row">
+        <button class="link-btn" onclick="showPanel('login')">로그인 화면으로 돌아가기</button>
+      </div>
+    </div>
+
+    <!-- ③ 새 비밀번호 설정 -->
+    <div class="panel" id="panel-reset">
+      <div class="panel-title">새 비밀번호 설정</div>
+      <div class="panel-desc">복구코드가 확인되었습니다. 새 비밀번호를 설정해주세요.</div>
+      <div class="sys-field">
+        <span class="sys-lbl">새 비밀번호</span>
+        <input type="password" class="sys-inp" id="reset-pw-new" oninput="checkResetPwMatch()">
+        <span class="field-hint">8자 이상, 영문·숫자·특수문자 조합</span>
+      </div>
+      <div class="sys-field">
+        <span class="sys-lbl">새 비밀번호 확인</span>
+        <input type="password" class="sys-inp" id="reset-pw-confirm" oninput="checkResetPwMatch()">
+        <span class="field-hint" id="reset-pw-err" style="color:#ef4444;display:none;">비밀번호가 일치하지 않습니다</span>
+      </div>
+      <button class="sys-btn-primary" onclick="resetPassword()">비밀번호 설정 완료</button>
+    </div>
+
+    <!-- ④ 완료 -->
+    <div class="panel" id="panel-done">
+      <div style="text-align:center;padding:20px 0;">
+        <div style="font-size:34px;margin-bottom:10px;">✅</div>
+        <div class="panel-title" style="margin-bottom:6px;">비밀번호가 변경되었습니다</div>
+        <div class="panel-desc">새 비밀번호로 다시 로그인해주세요.</div>
+      </div>
+      <button class="sys-btn-primary" onclick="showPanel('login')">로그인 화면으로 이동</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(function(){t.style.display='none';},2200);}
+
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+function doLogin(){
+  var id = document.getElementById('login-id').value;
+  var pw = document.getElementById('login-pw').value;
+  if(!id || !pw){ showToast('아이디와 비밀번호를 입력해주세요'); return; }
+  showToast('로그인 성공 (프로토타입)');
+}
+
+// ── 비밀번호 찾기 (복구코드) ──
+// 시리얼번호 기반 파생값. 실제로는 장비 생산 시 HMAC(비밀키, 시리얼)의 앞 8자리를
+// 미리 계산해 장비 DB에 저장해두고, 비밀키 자체는 장비에 절대 넣지 않는다.
+var SERIAL_NO = "1234567890";
+var RECOVERY_CODE = "5328FF89"; // = HMAC-SHA256(비밀키, SERIAL_NO)의 앞 8자리(hex, 대문자)
+
+function copySerial(){
+  if(navigator.clipboard){ navigator.clipboard.writeText(SERIAL_NO); }
+  showToast('시리얼번호가 복사되었습니다');
+}
+
+function formatRecoveryInput(el){
+  var raw = el.value.toUpperCase().replace(/[^0-9A-F]/g,'').slice(0,8);
+  el.value = raw.length > 4 ? raw.slice(0,4)+'-'+raw.slice(4) : raw;
+}
+
+function verifyRecoveryCode(){
+  showToast('복구코드 확인됨');
+  showPanel('reset');
+}
+
+// 이벤트를 인라인 속성 대신 addEventListener로 바인딩 (환경 호환성 강화)
+var recoveryInputEl = document.getElementById('recovery-code');
+if(recoveryInputEl){
+  recoveryInputEl.addEventListener('input', function(){ formatRecoveryInput(this); });
+  recoveryInputEl.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ verifyRecoveryCode(); } });
+}
+var recoveryBtnEl = document.getElementById('recovery-confirm-btn');
+if(recoveryBtnEl){
+  recoveryBtnEl.addEventListener('click', verifyRecoveryCode);
+}
+
+function checkResetPwMatch(){
+  var n = document.getElementById('reset-pw-new').value;
+  var c = document.getElementById('reset-pw-confirm').value;
+  document.getElementById('reset-pw-err').style.display = (c.length>0 && n!==c) ? 'block' : 'none';
+}
+
+function resetPassword(){
+  var n = document.getElementById('reset-pw-new').value;
+  var c = document.getElementById('reset-pw-confirm').value;
+  if(n.length < 8){ showToast('새 비밀번호는 8자 이상이어야 합니다'); return; }
+  if(n !== c){ showToast('새 비밀번호가 일치하지 않습니다'); return; }
+  showPanel('done');
+}
+</script>
+
+</body>
+</html>

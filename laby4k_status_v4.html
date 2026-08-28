@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LABY-4K 대시보드</title>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px;color:#1a1a1a;}
+.wrap{border:1px solid #ddd;border-radius:12px;overflow:hidden;background:#fff;max-width:1280px;margin:0 auto;}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #eee;}
+.layout{display:flex;}
+.gnb{width:170px;flex-shrink:0;border-right:1px solid #eee;padding:10px 7px;display:flex;flex-direction:column;gap:2px;}
+.gi{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:7px;font-size:12px;color:#666;}
+.gi.on{background:#f0f0f0;color:#1a1a1a;font-weight:500;}
+.gi.on .gi-icon{color:#1a1a1a;}
+.gi:hover .gi-icon{color:#555;}
+.gd{height:1px;background:#eee;margin:5px 3px;}
+.main{flex:1;min-width:0;padding:14px 15px;}
+.page-hd{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px;}
+.page-title{font-size:15px;font-weight:500;}
+.refresh-info{font-size:11px;color:#aaa;display:flex;align-items:center;gap:5px;}
+.refresh-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.dev-line{font-size:11px;color:#999;margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.dev-item{display:inline-flex;align-items:center;gap:5px;}
+.dev-k{color:#aaa;}
+.dev-v{color:#444;font-weight:600;}
+.dev-sep{color:#ddd;}
+
+.sec{border:1px solid #eee;border-radius:10px;margin-bottom:12px;overflow:hidden;}
+.sec-hd{display:flex;align-items:center;gap:7px;padding:8px 13px;background:#f8f8f8;border-bottom:1px solid #eee;}
+.sec-title{font-size:12px;font-weight:500;color:#555;flex:1;display:flex;align-items:center;gap:6px;}
+.sec-icon{display:inline-block;width:16px;text-align:center;font-size:13px;flex-shrink:0;line-height:1;}
+.bdg{font-size:10px;padding:2px 7px;border-radius:5px;background:#fff;color:#666;border:1px solid #ddd;font-family:monospace;}
+.sec-body{padding:13px 14px;}
+
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.don{background:#22c55e;}.doff{background:#d1d5db;}.derr{background:#ef4444;}.damb{background:#f59e0b;}
+.dot.blink{animation:dotblink 1.1s infinite;}
+@keyframes dotblink{0%,100%{opacity:1;}50%{opacity:0.25;}}
+.warn-ico{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#fff7ed;color:#f97316;font-size:10px;font-weight:700;flex-shrink:0;line-height:1;}
+.warn-txt{color:#f97316;font-weight:600;}
+.legend{display:flex;flex-wrap:wrap;gap:14px;padding:8px 13px;background:#fafafa;border-top:1px solid #eee;font-size:10.5px;color:#888;align-items:center;}
+.legend span{display:flex;align-items:center;gap:5px;}
+
+.more-link{font-size:10px;color:#2563eb;cursor:pointer;font-weight:500;white-space:nowrap;}
+.more-link:hover{text-decoration:underline;}
+.th-more{display:flex;align-items:center;justify-content:space-between;gap:4px;}
+
+/* 전체 요약 */
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.sum-card{border:1px solid #eee;border-radius:8px;padding:12px 10px;text-align:center;}
+.sum-lbl{font-size:10.5px;font-weight:600;color:#888;letter-spacing:0.3px;margin-bottom:8px;}
+.sum-val{font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:6px;}
+.sum-sub{font-size:10px;color:#bbb;margin-top:5px;}
+
+.ring{position:relative;width:58px;height:58px;border-radius:50%;flex-shrink:0;}
+.ring::before{content:'';position:absolute;inset:7px;background:#fff;border-radius:50%;}
+.ring-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#1a1a1a;z-index:1;}
+.sum-card.ring-card{display:flex;align-items:center;gap:14px;text-align:left;padding:12px 14px;}
+.sum-card.ring-card .more-link{margin-left:auto;flex-shrink:0;align-self:center;}
+.ring-info{min-width:0;flex:1;}
+
+.sysout-lbl{font-size:11px;color:#aaa;min-width:56px;flex-shrink:0;white-space:nowrap;}
+.out-lbl{min-width:92px;}
+.sum-card.io-card{text-align:left;}
+.sum-card.io-card .sum-lbl{margin-bottom:8px;}
+.sysout-item{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.sysout-item:last-child{margin-bottom:0;}
+.sysout-val{font-size:13px;font-weight:600;color:#1a1a1a;}
+
+.net-row{display:flex;align-items:center;gap:8px;}
+.net-if{font-size:11px;color:#aaa;min-width:56px;flex-shrink:0;white-space:nowrap;}
+.net-stat{display:flex;align-items:center;gap:5px;margin-right:14px;}
+.net-stat-lbl{font-size:11px;color:#aaa;}
+.net-stat-val{font-size:13px;font-weight:600;color:#1a1a1a;font-variant-numeric:tabular-nums;}
+
+/* 전체요약 2번째 줄: 실시간 세로 게이지 */
+.rt-row{display:flex;gap:10px;margin-top:12px;flex-wrap:nowrap;align-items:stretch;}
+.rt-group{flex:1;min-width:0;border:1px solid #eee;border-radius:8px;padding:9px 10px 10px;}
+.rt-group.audio-grp{flex:1.8;}
+.rt-group-title{font-size:10.5px;font-weight:600;color:#888;margin-bottom:9px;letter-spacing:0.3px;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.vg-row{display:flex;gap:4px;align-items:flex-end;}
+.vg-item{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0;}
+.vg-track{width:100%;max-width:15px;height:58px;background:#eee;border-radius:3px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;}
+.vg-fill{width:100%;border-radius:2px 2px 0 0;transition:height 0.2s ease;}
+.vg-label{font-size:9px;color:#888;font-weight:500;white-space:nowrap;}
+.vg-val{font-size:8.5px;color:#555;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.vg-val.off{color:#ccc;}
+
+/* 채널 상태 카드 */
+.ch-card{border:1px solid #eee;border-radius:8px;overflow:hidden;margin-bottom:10px;}
+.ch-card:last-child{margin-bottom:0;}
+.ch-card-hd{padding:8px 12px;background:#f8f8f8;border-bottom:1px solid #eee;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:7px;color:#1a1a1a;}
+.ch-card.offline .ch-card-hd{color:#bbb;font-weight:500;}
+
+.io-row{display:grid;grid-template-columns:48px 1fr 1fr 1fr;column-gap:0;align-items:center;padding:8px 0;border-bottom:1px solid #eee;background:#fcfcfd;font-size:11.5px;}
+.io-row>*{padding-left:10px;min-width:0;}
+.io-inline{display:flex;align-items:center;gap:6px;white-space:nowrap;min-width:0;}
+.io-inline-lbl{color:#bbb;font-size:10px;flex-shrink:0;display:inline-flex;align-items:center;line-height:1;}
+.io-row .more-link{justify-self:end;flex-shrink:0;padding-right:10px;}
+.io-lbl{color:#aaa;font-size:10px;flex-shrink:0;display:inline-flex;align-items:center;line-height:1;white-space:nowrap;}
+.io-val{color:#444;display:inline-flex;align-items:center;line-height:1.2;min-width:0;overflow:hidden;}
+
+.io-aud{display:flex;gap:14px;flex-wrap:wrap;}
+.io-aud-item{display:flex;align-items:center;gap:5px;}
+.io-aud-lbl{font-size:10.5px;color:#666;}
+
+.mix-preview{display:flex;gap:8px;align-items:center;min-width:0;overflow:hidden;}
+.mix-swatch{width:44px;height:28px;border-radius:4px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;flex-shrink:0;border:1px solid #e5e7eb;}
+.mix-swatch div{display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700;}
+.mix-swatch .c1{grid-row:1/3;background:#3b82f6;}
+.mix-swatch .c2{background:#22c55e;}
+.mix-swatch .c3{background:#d97706;}
+.mix-info-name{font-size:11.5px;font-weight:400;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+
+/* 스트림 표 */
+.tier-tbl{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;}
+.tier-tbl thead th{font-size:10px;font-weight:500;color:#aaa;padding:5px 10px;border-bottom:1px solid #eee;text-align:left;background:#fafafa;}
+.tier-tbl thead th.tier-col{width:48px;}
+.tier-tbl tbody td{padding:9px 10px;border-bottom:1px solid #f4f4f4;vertical-align:top;}
+.tier-tbl tbody tr:last-child td{border-bottom:none;}
+.tier-name{font-weight:600;color:#444;font-size:12px;}
+.tline{display:flex;align-items:center;gap:5px;margin-bottom:3px;font-size:11.5px;color:#444;}
+.tline:last-child{margin-bottom:0;}
+.tline .lbl{color:#bbb;width:30px;flex-shrink:0;font-size:10px;}
+.bit-live{color:#16a34a;font-weight:600;}
+.tmono{font-family:monospace;font-size:10.5px;color:#666;word-break:break-all;line-height:1.4;}
+.tidle{color:#ccc;font-size:11.5px;}
+.stream-extra{margin-top:2px;}
+.strm-line{display:flex;gap:14px;}
+.strm-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#444;}
+
+/* 운영 정책 */
+.policy-status{font-size:12px;font-weight:600;margin-bottom:8px;}
+.policy-status.on{color:#16a34a;}
+.policy-status.off{color:#aaa;}
+.policy-sub{display:flex;align-items:center;gap:6px;font-size:11.5px;color:#444;margin-bottom:4px;}
+.policy-sub:last-child{margin-bottom:0;}
+.policy-sub .check{width:13px;height:13px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:#fff;flex-shrink:0;}
+.policy-sub .check.on{background:#22c55e;}
+.policy-sub .check.off{background:#e5e7eb;color:#bbb;}
+.policy-day{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:4px;font-size:10px;margin-right:2px;}
+.policy-day.on{background:#eff6ff;color:#1d4ed8;font-weight:600;}
+.policy-day.off{background:#f4f4f4;color:#ccc;}
+
+/* 참고 테이블 */
+.ref-tbl{width:100%;border-collapse:separate;border-spacing:0;}
+.ref-tbl th{font-size:11px;font-weight:500;color:#aaa;padding:5px 10px;text-align:left;border-bottom:1px solid #eee;}
+.ref-tbl td{font-size:12px;padding:6px 10px;border-bottom:1px solid #f4f4f4;color:#444;}
+.ref-tbl tr:last-child td{border-bottom:none;}
+.map-note{font-size:10.5px;color:#bbb;padding:8px 13px 11px;border-top:1px dashed #eee;}
+.map-note code{font-family:monospace;background:#f7f7f7;padding:1px 4px;border-radius:3px;color:#888;}
+
+.identify-link-btn{font-size:11px;color:#1d4ed8;background:none;border:none;cursor:pointer;font-weight:600;padding:0;white-space:nowrap;}
+.identify-link-btn:hover{text-decoration:underline;}
+.identify-link-btn:disabled{color:#93c5fd;cursor:default;text-decoration:none;}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;display:none;z-index:999;white-space:nowrap;}
+
+</style>
+</head>
+<body>
+<div style="background:#1e293b;color:#94a3b8;font-size:10px;text-align:right;padding:3px 14px;letter-spacing:0.5px;">
+  화면설계서 <strong style="color:#e2e8f0;">ver 14</strong> &nbsp;·&nbsp; LABY-4K LabyConfig4K &nbsp;·&nbsp; 2026-08-06
+</div>
+
+<div class="wrap">
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:7px;font-size:14px;font-weight:500;">📹 LABY-4K 설정프로그램</div>
+    <div style="display:flex;align-items:center;gap:9px;">
+      <a href="laby4k_wizard_v1.html" style="font-size:12px;padding:4px 10px;border:1px solid #93c5fd;border-radius:6px;background:#eff6ff;color:#1d4ed8;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">⚡ 간편설정</a>
+      <button id="identify-btn" onclick="identifyDevice()" style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;font-weight:500;cursor:pointer;">🔦 녹화기 확인</button>
+      <span style="font-size:12px;color:#888;background:#f5f5f5;padding:3px 9px;border-radius:6px;">● IDLE</span>
+      <button style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;">로그아웃</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="gnb">
+      <div class="gi on"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="8" width="3.5" height="6.5" rx="0.5"/><rect x="6.2" y="4" width="3.5" height="10.5" rx="0.5"/><rect x="11.5" y="1" width="3.5" height="13.5" rx="0.5"/></svg></span>대시보드</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="12" height="8" rx="1.5"/><line x1="5" y1="4" x2="5" y2="2"/><line x1="11" y1="4" x2="11" y2="2"/><line x1="8" y1="12" x2="8" y2="14"/><line x1="5" y1="8" x2="11" y2="8"/></svg></span>입출력 설정</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="3" width="14" height="10" rx="1"/><line x1="1" y1="6.5" x2="15" y2="6.5"/><line x1="4" y1="3" x2="4" y2="6.5"/><line x1="8" y1="3" x2="8" y2="6.5"/><line x1="12" y1="3" x2="12" y2="6.5"/><line x1="4" y1="9.5" x2="4" y2="13"/><line x1="8" y1="9.5" x2="8" y2="13"/><line x1="12" y1="9.5" x2="12" y2="13"/></svg></span>씬</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="4" x2="15" y2="4"/><line x1="1" y1="8" x2="15" y2="8"/><line x1="1" y1="12" x2="15" y2="12"/><circle cx="5" cy="4" r="2" fill="white" stroke="currentColor"/><circle cx="11" cy="8" r="2" fill="white" stroke="currentColor"/><circle cx="7" cy="12" r="2" fill="white" stroke="currentColor"/></svg></span>인코딩 및 프로파일</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 5.5 C4 2.5 12 2.5 15 5.5"/><path d="M3.5 8.2 C5.5 6.2 10.5 6.2 12.5 8.2"/><path d="M6 10.5 C7 9.5 9 9.5 10 10.5"/><circle cx="8" cy="13" r="1.2" fill="currentColor" stroke="none"/></svg></span>스트리밍</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg></span>녹화 및 저장</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></span>업로드</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="12" cy="10" r="3"/></svg></span>기기 녹화 설정</div>
+      <div class="gd"></div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>파일 관리</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg></span>계정</div>
+      <div class="gi" style="cursor:pointer;"><span class="gi-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="2.5"/><line x1="8" y1="1" x2="8" y2="3"/><line x1="8" y1="13" x2="8" y2="15"/><line x1="1" y1="8" x2="3" y2="8"/><line x1="13" y1="8" x2="15" y2="8"/><line x1="2.9" y1="2.9" x2="4.4" y2="4.4"/><line x1="11.6" y1="11.6" x2="13.1" y2="13.1"/><line x1="2.9" y1="13.1" x2="4.4" y2="11.6"/><line x1="11.6" y1="4.4" x2="13.1" y2="2.9"/></svg></span>시스템 및 네트워크</div>
+    </div>
+
+    <div class="main">
+      <div class="page-hd">
+        <span class="page-title">대시보드</span>
+        <span class="refresh-info"><span class="refresh-dot"></span>실시간 갱신 (2초 주기)</span>
+      </div>
+      <div class="dev-line" id="dev-line"></div>
+
+      <!-- ① 전체 요약 -->
+      <div class="sec">
+        <div class="sec-hd">
+          <span class="sec-title"><span class="sec-icon">🖥</span>전체 요약</span>
+          <span class="bdg">GET ~/status → resources.memory / storage.primary / output / network.interfaces</span>
+        </div>
+        <div class="sec-body">
+          <div class="sum-grid" id="sum-grid"></div>
+          <div class="sum-grid" style="margin-top:10px;">
+            <div class="sum-card io-card">
+              <div class="th-more" style="margin-bottom:8px;"><span class="sum-lbl" style="margin-bottom:0;">출력</span><span class="more-link" onclick="goTo('입출력 설정')">더보기 +</span></div>
+              <div class="sysout-item"><span class="sysout-lbl out-lbl">모니터링(HDMI)</span><span class="sysout-val" id="out-monitoring"></span></div>
+              <div class="sysout-item"><span class="sysout-lbl out-lbl">LCD</span><span class="sysout-val" id="out-lcd"></span></div>
+            </div>
+            <div class="sum-card io-card">
+              <div class="sum-lbl">네트워크</div>
+              <div id="net-body"></div>
+            </div>
+          </div>
+          <div class="rt-row" id="rt-row"></div>
+        </div>
+      </div>
+
+      <!-- ② 채널 상태 (스트림별 상세) -->
+      <div class="sec">
+        <div class="sec-hd">
+          <span class="sec-title"><span class="sec-icon">📡</span>채널 상태 (스트림별)</span>
+          <span class="bdg">GET ~/status → channels.{ch}.encoders / recording.sessions / streaming.outputs</span>
+        </div>
+        <div class="sec-body" id="ch-status-body"></div>
+        <div class="legend">
+          <span><span class="dot don"></span>인코딩중</span>
+          <span><span class="dot doff"></span>대기</span>
+          <span><span class="warn-ico">!</span>인코딩 오류</span>
+          <span style="margin-left:8px;"><span class="dot derr blink"></span>녹화중</span>
+          <span><span class="dot damb"></span>일시정지</span>
+        </div>
+        <div class="map-note">
+          인코딩: <code>status(encoding/idle/error)</code> · 해상도 · 비디오(설정→실시간) &nbsp;|&nbsp;
+          녹화: <code>status(recording/paused/idle)</code> · 세션(<code>rec_cd</code>) · 경과시간 &nbsp;|&nbsp;
+          스트리밍: 프로토콜별(RTMP/SRT) on/off
+        </div>
+      </div>
+
+      <!-- 운영 정책 -->
+      <div class="sec">
+        <div class="sec-hd">
+          <span class="sec-title"><span class="sec-icon">🗂</span>운영 정책</span>
+          <span class="bdg">GET ~/status → storage.policy / power.schedule</span>
+        </div>
+        <div class="sec-body">
+          <div class="sum-grid">
+            <div class="sum-card io-card" id="policy-autodel"></div>
+            <div class="sum-card io-card" id="policy-power"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 참고: 제품별 녹화채널 구성 -->
+      <div class="sec">
+        <div class="sec-hd">
+          <span class="sec-title"><span class="sec-icon">📋</span>제품별 녹화채널 구성 (참고)</span>
+        </div>
+        <div class="sec-body">
+          <table class="ref-tbl">
+            <thead><tr><th>제품</th><th>채널</th></tr></thead>
+            <tbody>
+              <tr><td>Laby-II 4K</td><td>ch1, ch2, chhost</td></tr>
+              <tr><td>Laby-IV 4K</td><td>ch1, ch2, ch3, ch4, chhost</td></tr>
+              <tr><td>Laby-Flatpanel 4K</td><td>ch1, ch2, chhost</td></tr>
+              <tr><td>Laby-Box 4K</td><td>ch1, ch2, chhost</td></tr>
+              <tr><td>Laby-Cam 4K</td><td>ch1(chhost)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="map-note">API : <code>GET ~/status</code> (schema_version 1). chhost(Scene)는 메인보드 채널이므로 <code>info</code>는 항상 존재하며, ch1~ch4의 <code>info</code>만 오프라인 시 null 가능.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(function(){t.style.display='none';},2200);}
+function goTo(pageLabel){ showToast(pageLabel+' 상세 화면으로 이동 (프로토타입)'); }
+
+function identifyDevice(){
+  var btn = document.getElementById('identify-btn');
+  if(!btn || btn.disabled) return;
+  btn.disabled = true;
+  showToast('POST ~/api/v1/system/identify · 장비 램프 점등');
+  var remain = 5;
+  btn.textContent = '🔦 램프 점등 중... ('+remain+'초)';
+  var timer = setInterval(function(){
+    remain -= 1;
+    if(remain <= 0){
+      clearInterval(timer);
+      btn.textContent = '🔦 녹화기 확인';
+      btn.disabled = false;
+      return;
+    }
+    btn.textContent = '🔦 램프 점등 중... ('+remain+'초)';
+  }, 1000);
+}
+
+// ── 신규 GET ~/status 응답 예시 (schema_version 1) ──
+var DATA = {
+  product_type: "Laby-IV 4K",
+  version: "1.1.1.1",
+  uptime_sec: 86400,
+  resources: { memory: { total_bytes: 8300527616, used_bytes: 1993342976, usage_pct: 24.0 } },
+  network: { interfaces: { end1: { link: true, rx_bps: 1250000, tx_bps: 850000 } } },
+  policy: {
+    ip: "192.168.0.100",
+    autoDelete: { enabled: true, scheduled: true, realtime: true },
+    powerSchedule: { enabled: true, days: ["mon","tue","wed","thu","fri","sat"], on: "08:00", off: "23:00" }
+  },
+  output: { monitoring: "CH1", lcd: "Scene" },
+  inputs: {
+    audio: {
+      linein:   { signal: true,  level_db: -20.5 },
+      xlrcombo: { signal: true,  level_db: -28.0 },
+      usbaudio: { signal: false, level_db: null },
+      mixaudio: { signal: true, level_db: -18.0 }
+    }
+  },
+  channels: {
+    ch1: {
+      status: "ready",
+      info: { firmware_version: "0.5.46", cpu_usage_pct: 45.0, cpu_temperature_c: 52.0, vepu_usage_pct: 49.7 },
+      audio_inputs: { hdmi: { signal: true, level_db: -18.0 }, sdi: { signal: false, level_db: null } },
+      io: { input:{type:"HDMI", width:3840, height:2160, fps:60} },
+      tiers: {
+        main: {
+          encoder: { status:"encoding", width:1920, height:1080, fps:30, target_bps:10000000, current_bps:9500000, audio:{bitrate:128000,channels:1,samplerate:48000} },
+          recording: { status:"recording", rec_cd:"REC_20260806_001", elapsed_sec:2743, filepath:"/2학기 강의/REC_20260806_001.mp4", filesize_bytes:300000000 },
+          streaming: { rtmp:true, srt:true }
+        },
+        sub: {
+          encoder: { status:"encoding", width:1280, height:720, fps:30, target_bps:4000000, current_bps:3800000, audio:{bitrate:128000,channels:1,samplerate:48000} },
+          recording: { status:"recording", rec_cd:"REC_20260806_001", elapsed_sec:2743, filepath:"/2학기 강의/REC_20260806_001_sub.mp4", filesize_bytes:120000000 },
+          streaming: { rtmp:false, srt:false }
+        },
+        prev: {
+          encoder: { status:"encoding", width:640, height:360, fps:15, target_bps:1000000, current_bps:950000, audio:{bitrate:128000,channels:1,samplerate:48000} },
+          recording: { status:"idle" },
+          streaming: { rtmp:false, srt:false }
+        }
+      }
+    },
+    ch2: {
+      status: "ready",
+      info: { firmware_version: "0.5.46", cpu_usage_pct: 21.0, cpu_temperature_c: 44.0, vepu_usage_pct: 18.0 },
+      audio_inputs: { hdmi: { signal: false, level_db: null } },
+      io: { input:{type:"SDI", width:1920, height:1080, fps:30} },
+      tiers: {
+        main: {
+          encoder: { status:"error", width:1920, height:1080, fps:30, target_bps:10000000, current_bps:0, audio:{bitrate:128000,channels:1,samplerate:48000} },
+          recording: { status:"paused", rec_cd:"REC_20260806_002", elapsed_sec:1520, filepath:"/2학기 강의/REC_20260806_002.mp4", filesize_bytes:180000000 },
+          streaming: { rtmp:false, srt:false }
+        },
+        sub: {
+          encoder: { status:"idle", width:1280, height:720, fps:30, target_bps:4000000, current_bps:0, audio:{bitrate:128000,channels:1,samplerate:48000} },
+          recording: { status:"paused", rec_cd:"REC_20260806_002", elapsed_sec:1520, filepath:"/2학기 강의/REC_20260806_002_sub.mp4", filesize_bytes:70000000 },
+          streaming: { rtmp:false, srt:false }
+        },
+        prev: {
+          encoder: { status:"idle", width:640, height:360, fps:15, target_bps:1000000, current_bps:0, audio:{bitrate:128000,channels:1,samplerate:48000} },
+          recording: { status:"idle" },
+          streaming: { rtmp:false, srt:false }
+        }
+      }
+    },
+    ch3: { status: "offline", info: null, audio_inputs: null, tiers: null },
+    ch4: { status: "offline", info: null, audio_inputs: null, tiers: null },
+    chhost: {
+      status: "ready",
+      info: { firmware_version: "0.5.46", cpu_usage_pct: 12.0, cpu_temperature_c: 41.0, vepu_usage_pct: 8.0 },
+      audio_inputs: null,
+      audio_source: { mode:"mix", sources:[
+        { name:"CH1 HDMI", signal:true },
+        { name:"CH2 HDMI", signal:true },
+        { name:"LineIn", signal:false }
+      ] },
+      io: { input:{ mix:true, mixName:"VMX_014", pattern:"1·2·3", width:3840, height:2160 } },
+      tiers: {
+        main: {
+          encoder: { status:"encoding", width:1920, height:1080, fps:60, target_bps:8000000, current_bps:8200000, audio:{bitrate:128000,channels:1,samplerate:48000} },
+          recording: { status:"recording", rec_cd:"REC_20260806_001", elapsed_sec:2743, filepath:"/2학기 강의/REC_20260806_001_mix.mp4", filesize_bytes:520000000 },
+          streaming: { rtmp:true, srt:false }
+        },
+        sub: {
+          encoder: { status:"encoding", width:1280, height:720, fps:30, target_bps:4000000, current_bps:3900000, audio:{bitrate:128000,channels:1,samplerate:48000} },
+          recording: { status:"recording", rec_cd:"REC_20260806_001", elapsed_sec:2743, filepath:"/2학기 강의/REC_20260806_001_mix_sub.mp4", filesize_bytes:210000000 },
+          streaming: { rtmp:false, srt:false }
+        },
+        prev: {
+          encoder: { status:"idle", width:640, height:360, fps:15, target_bps:1000000, current_bps:0, audio:{bitrate:128000,channels:1,samplerate:48000} },
+          recording: { status:"idle" },
+          streaming: { rtmp:false, srt:false }
+        }
+      }
+    }
+  },
+  storage: {
+    summary: { status: "ready", ready_count: 2, formatting_count: 0, error_count: 0 },
+    primary: { storageid: "chhost_nvme_1", state: "ready", total_bytes: 512000000000, used_bytes: 128000000000, available_bytes: 384000000000 }
+  },
+  checked_at: 1785984010
+};
+
+var CH_ORDER = ["ch1","ch2","ch3","ch4","chhost"];
+var CH_LABEL = {ch1:"CH1", ch2:"CH2", ch3:"CH3", ch4:"CH4", chhost:"Scene"};
+var TIERS = ["main","sub","prev"];
+
+function fmtGB(b){ return (b/1e9).toFixed(0); }
+function fmtMB(b){ return Math.round(b/1e6); }
+function fmtMbps(bps){ return (bps/1e6).toFixed(1); }
+function fmtUptime(sec){
+  var d=Math.floor(sec/86400), h=Math.floor((sec%86400)/3600), m=Math.floor((sec%3600)/60), s=sec%60;
+  function p(n){return String(n).padStart(2,'0');}
+  return (d>0? d+'일 ':'')+p(h)+':'+p(m)+':'+p(s);
+}
+function fmtElapsed(sec){
+  var h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60;
+  function p(n){return String(n).padStart(2,'0');}
+  return p(h)+':'+p(m)+':'+p(s);
+}
+function barColor(pct){ return pct>=85 ? 'crit' : (pct>=65 ? 'warn' : ''); }
+function dbPct(db){ if(db==null) return 0; var c=Math.max(-60,Math.min(0,db)); return ((c+60)/60)*100; }
+
+// ── 상단 디바이스 정보 ──
+document.getElementById('dev-line').innerHTML =
+  '<span class="dev-item"><span class="dev-k">모델</span><span class="dev-v">'+DATA.product_type+'</span></span>'+
+  '<span class="dev-sep">·</span>'+
+  '<span class="dev-item"><span class="dev-k">버전</span><span class="dev-v">v'+DATA.version+'</span></span>'+
+  '<span class="dev-sep">·</span>'+
+  '<span class="dev-item"><span class="dev-k">가동시간</span><span class="dev-v">'+fmtUptime(DATA.uptime_sec)+'</span></span>';
+
+// ── ① 전체 요약 ──
+function ringColor(pct){ return pct>=85 ? '#ef4444' : (pct>=65 ? '#f59e0b' : '#3b82f6'); }
+function ringHtml(pct){
+  var c = ringColor(pct);
+  return '<div class="ring" style="background:conic-gradient('+c+' '+pct+'%, #eee 0);"><span class="ring-val">'+Math.round(pct)+'%</span></div>';
+}
+(function(){
+  var m = DATA.resources.memory;
+  var p = DATA.storage.primary, sm = DATA.storage.summary;
+  var stPct = (p.used_bytes/p.total_bytes)*100;
+  document.getElementById('sum-grid').innerHTML =
+    '<div class="sum-card ring-card">'+
+      ringHtml(m.usage_pct)+
+      '<div class="ring-info"><div class="sum-lbl">메모리 사용</div>'+
+      '<div class="sum-val">'+fmtMB(m.used_bytes)+' / '+fmtMB(m.total_bytes)+' MB</div></div>'+
+    '</div>'+
+    '<div class="sum-card ring-card">'+
+      ringHtml(stPct)+
+      '<div class="ring-info"><div class="th-more" style="margin-bottom:8px;"><span class="sum-lbl" style="margin-bottom:0;">저장소 사용 (주저장소 · '+p.storageid+')</span><span class="more-link" onclick="goTo(\'녹화 및 저장\')">더보기 +</span></div>'+
+      '<div class="sum-val">'+fmtGB(p.used_bytes)+' / '+fmtGB(p.total_bytes)+' GB</div>'+
+      '<div class="sum-sub">상태 '+p.state+' · 정상 '+sm.ready_count+' · 포맷중 '+sm.formatting_count+' · 오류 '+sm.error_count+'</div></div>'+
+    '</div>';
+})();
+
+// ── ① 전체요약 2번째 줄: 실시간 세로 게이지 (오디오 / CPU / VEPU, 채널별 5개) ──
+function vgGroupHtml(title, icon, items, wide, moreLabel){
+  var bars = items.map(function(it){
+    return '<div class="vg-item">'+
+      '<div class="vg-track"><div class="vg-fill" style="height:'+it.pct+'%;background:'+it.color+';"></div></div>'+
+      '<span class="vg-val'+(it.off?' off':'')+'">'+it.valText+'</span>'+
+      '<span class="vg-label">'+it.label+'</span>'+
+    '</div>';
+  }).join('');
+  var lbl = (icon ? icon+' ' : '')+title;
+  var titleRow = moreLabel
+    ? '<div class="th-more" style="margin-bottom:9px;"><span class="rt-group-title" style="margin-bottom:0;">'+lbl+'</span><span class="more-link" onclick="goTo(\''+moreLabel+'\')">더보기 +</span></div>'
+    : '<div class="rt-group-title">'+lbl+'</div>';
+  return '<div class="rt-group'+(wide?' audio-grp':'')+'">'+titleRow+'<div class="vg-row">'+bars+'</div></div>';
+}
+(function(){
+  function chAudItem(label, src){
+    var sig = !!(src && src.signal);
+    return { label: label, pct: sig ? dbPct(src.level_db) : 0, color: sig ? '#22c55e' : '#eee', valText: sig ? src.level_db.toFixed(1)+'dB' : '—', off: !sig };
+  }
+  function chActiveSrc(id){
+    var a = DATA.channels[id].audio_inputs;
+    if(!a) return null;
+    if(a.hdmi && a.hdmi.signal) return a.hdmi;
+    if(a.sdi && a.sdi.signal) return a.sdi;
+    return null;
+  }
+  var common = DATA.inputs.audio;
+  var audItems = [
+    chAudItem('CH1 HDMI', DATA.channels.ch1.audio_inputs.hdmi),
+    chAudItem('CH1 SDI',  DATA.channels.ch1.audio_inputs.sdi),
+    chAudItem('CH2', chActiveSrc('ch2')),
+    chAudItem('CH3', chActiveSrc('ch3')),
+    chAudItem('CH4', chActiveSrc('ch4')),
+    chAudItem('LineIn', common.linein),
+    chAudItem('XLR', common.xlrcombo),
+    chAudItem('USB', common.usbaudio),
+    chAudItem('MixAudio', common.mixaudio)
+  ];
+  var cpuItems = CH_ORDER.map(function(id){
+    var ch = DATA.channels[id]; var off = ch.status!=='ready' || !ch.info;
+    var pct = off ? 0 : ch.info.cpu_usage_pct;
+    return { label: CH_LABEL[id], pct: pct, color: off ? '#eee' : (barColor(pct)==='crit'?'#ef4444':barColor(pct)==='warn'?'#f59e0b':'#3b82f6'), valText: off ? '—' : pct+'%', off: off };
+  });
+  var vepuItems = CH_ORDER.map(function(id){
+    var ch = DATA.channels[id]; var off = ch.status!=='ready' || !ch.info;
+    var pct = off ? 0 : ch.info.vepu_usage_pct;
+    return { label: CH_LABEL[id], pct: pct, color: off ? '#eee' : (barColor(pct)==='crit'?'#ef4444':barColor(pct)==='warn'?'#f59e0b':'#3b82f6'), valText: off ? '—' : pct+'%', off: off };
+  });
+  document.getElementById('rt-row').innerHTML =
+    vgGroupHtml('오디오', '', audItems, true, '오디오')+
+    vgGroupHtml('CPU', '', cpuItems)+
+    vgGroupHtml('VEPU', '', vepuItems);
+})();
+
+// ── ② 채널 상태 (스트림별 상세) ──
+var ENC_LBL = {encoding:'인코딩중', idle:'대기', error:'오류'};
+var ENC_DOT = {encoding:'don', idle:'doff'};
+var REC_LBL = {recording:'녹화중', paused:'일시정지', idle:'대기'};
+var REC_DOT = {recording:'derr', paused:'damb', idle:'doff'};
+
+function encCellHtml(e, compact){
+  var stateLine = e.status === 'error'
+    ? '<div class="tline"><span class="warn-ico">!</span><span class="warn-txt">오류</span></div>'
+    : '<div class="tline"><span class="dot '+ENC_DOT[e.status]+'"></span>'+ENC_LBL[e.status]+'</div>';
+  var extra = '<div class="stream-extra" style="display:'+(compact?'none':'block')+';">'+
+    '<div class="tline"><span class="lbl">해상도</span>'+e.width+'x'+e.height+' · '+e.fps+'fps</div>'+
+    '<div class="tline"><span class="lbl">비디오</span>'+fmtMbps(e.target_bps)+'Mbps → <span class="bit-live">'+fmtMbps(e.current_bps)+'Mbps</span></div>'+
+  '</div>';
+  return stateLine+extra;
+}
+function recCellHtml(r, compact){
+  if(r.status === 'idle'){
+    return '<div class="tidle"><span class="dot doff"></span>대기</div>';
+  }
+  var recDotCls = REC_DOT[r.status] + (r.status==='recording' ? ' blink' : '');
+  var stateLine = '<div class="tline"><span class="dot '+recDotCls+'"></span>'+REC_LBL[r.status]+'</div>';
+  var extra = '<div class="stream-extra" style="display:'+(compact?'none':'block')+';">'+
+    '<div class="tline"><span class="lbl">세션</span>'+r.rec_cd+'</div>'+
+    '<div class="tline"><span class="lbl">시간</span>'+fmtElapsed(r.elapsed_sec)+'</div>'+
+  '</div>';
+  return stateLine+extra;
+}
+function strmCellHtml(s){
+  return '<div class="strm-line">'+
+    '<span class="strm-badge"><span class="dot '+(s.rtmp?'don':'doff')+'"></span>RTMP</span>'+
+    '<span class="strm-badge"><span class="dot '+(s.srt?'don':'doff')+'"></span>SRT</span>'+
+  '</div>';
+}
+function ioRowHtml(io, info, audioIn, audioSrc){
+  var inputHtml;
+  if(io.input && io.input.mix){
+    var m = io.input;
+    inputHtml = '<div class="mix-preview">'+
+      '<div class="mix-swatch"><div class="c1">1</div><div class="c2">2</div><div class="c3">3</div></div>'+
+      '<span class="mix-info-name">'+m.width+'x'+m.height+' · '+m.mixName+' · '+m.pattern+'</span>'+
+    '</div>';
+  } else if(io.input){
+    inputHtml = io.input.type+' · '+io.input.width+'x'+io.input.height+' · '+io.input.fps+'fps';
+  } else {
+    inputHtml = '<span style="color:#bbb;">믹스 (내부 신호)</span>';
+  }
+
+  var audHtml;
+  if(audioSrc){
+    if(audioSrc.mode === 'mix'){
+      var items = audioSrc.sources.map(function(s){
+        return '<div class="io-aud-item"><span class="dot '+(s.signal?'don':'doff')+'"></span><span class="io-aud-lbl">'+s.name+'</span></div>';
+      }).join('');
+      audHtml = '<div class="io-aud"><span class="io-aud-lbl">MixAudio (</span>'+items+'<span class="io-aud-lbl">)</span></div>';
+    } else {
+      audHtml = '<div class="io-aud"><div class="io-aud-item"><span class="dot don"></span><span class="io-aud-lbl">'+audioSrc.sources[0].name+'</span></div></div>';
+    }
+  } else if(!audioIn){
+    audHtml = '<span style="color:#bbb;font-size:11px;">해당 없음</span>';
+  } else {
+    audHtml = '<div class="io-aud">'+
+      Object.keys(audioIn).map(function(k){
+        var a = audioIn[k];
+        return '<div class="io-aud-item"><span class="dot '+(a.signal?'don':'doff')+'"></span><span class="io-aud-lbl">'+k.toUpperCase()+'</span></div>';
+      }).join('')+
+    '</div>';
+  }
+
+  return '<div class="io-row">'+
+    '<span class="io-lbl">입력</span>'+
+    '<span class="io-inline"><span class="io-inline-lbl">비디오</span><span class="io-val">'+inputHtml+'</span></span>'+
+    '<span class="io-inline"><span class="io-inline-lbl">오디오</span>'+audHtml+'</span>'+
+    '<span class="more-link" onclick="goTo(\'입출력 설정\')">더보기 +</span>'+
+  '</div>';
+}
+
+(function(){
+  var html = CH_ORDER.map(function(id){
+    var ch = DATA.channels[id];
+    if(ch.status !== 'ready' || !ch.tiers){
+      return '<div class="ch-card offline"><div class="ch-card-hd"><span class="dot doff"></span>'+CH_LABEL[id]+' · 오프라인</div></div>';
+    }
+    var rows = TIERS.map(function(t){
+      var tier = ch.tiers[t];
+      var compact = (t !== 'main');
+      return '<tr>'+
+        '<td class="tier-name">'+t+'</td>'+
+        '<td>'+encCellHtml(tier.encoder, compact)+'</td>'+
+        '<td>'+recCellHtml(tier.recording, compact)+'</td>'+
+        '<td>'+strmCellHtml(tier.streaming)+'</td>'+
+      '</tr>';
+    }).join('');
+    return '<div class="ch-card">'+
+      '<div class="ch-card-hd"><span class="dot don"></span>'+CH_LABEL[id]+'</div>'+
+      ioRowHtml(ch.io, ch.info, ch.audio_inputs, ch.audio_source)+
+      '<table class="tier-tbl">'+
+        '<thead><tr><th class="tier-col">스트림</th>'+
+          '<th><div class="th-more">인코딩<span class="more-link" onclick="goTo(\'인코딩 및 프로파일\')">더보기 +</span></div></th>'+
+          '<th><div class="th-more">녹화<span class="more-link" onclick="goTo(\'녹화 및 저장\')">더보기 +</span></div></th>'+
+          '<th><div class="th-more">스트리밍<span class="more-link" onclick="goTo(\'스트리밍\')">더보기 +</span></div></th>'+
+        '</tr></thead>'+
+        '<tbody>'+rows+'</tbody>'+
+      '</table>'+
+    '</div>';
+  }).join('');
+  document.getElementById('ch-status-body').innerHTML = html;
+})();
+
+// ── ② 시스템 출력 ──
+document.getElementById('out-monitoring').textContent = DATA.output.monitoring;
+document.getElementById('out-lcd').textContent = DATA.output.lcd;
+
+// ── 운영 정책 ──
+(function(){
+  var pol = DATA.policy;
+
+  var ad = pol.autoDelete;
+  document.getElementById('policy-autodel').innerHTML =
+    '<div class="policy-status '+(ad.enabled?'on':'off')+'">자동 삭제 사용 '+(ad.enabled?'함':'안 함')+'</div>'+
+    '<div class="policy-sub"><span class="check '+(ad.scheduled?'on':'off')+'">'+(ad.scheduled?'✓':'')+'</span>스케줄 삭제</div>'+
+    '<div class="policy-sub"><span class="check '+(ad.realtime?'on':'off')+'">'+(ad.realtime?'✓':'')+'</span>실시간 삭제</div>';
+
+  var ps = pol.powerSchedule;
+  var dayLbl = {mon:'월',tue:'화',wed:'수',thu:'목',fri:'금',sat:'토',sun:'일'};
+  var daysHtml = Object.keys(dayLbl).map(function(d){
+    var on = ps.days.indexOf(d) > -1;
+    return '<span class="policy-day '+(on?'on':'off')+'">'+dayLbl[d]+'</span>';
+  }).join('');
+  document.getElementById('policy-power').innerHTML =
+    '<div class="policy-status '+(ps.enabled?'on':'off')+'">전원 스케줄 사용 '+(ps.enabled?'함':'안 함')+'</div>'+
+    '<div style="margin-bottom:6px;">'+daysHtml+'</div>'+
+    '<div class="policy-sub">ON <b style="margin-left:3px;">'+ps.on+'</b><span style="margin:0 6px;color:#ddd;">·</span>OFF <b style="margin-left:3px;">'+ps.off+'</b></div>';
+})();
+// ── 네트워크 (전체 요약 섹션 내부) ──
+(function(){
+  var html = '<div class="sysout-item" style="margin-bottom:8px;"><span class="sysout-lbl">IP 주소</span><span class="sysout-val">'+DATA.policy.ip+'</span></div>';
+  Object.keys(DATA.network.interfaces).forEach(function(k){
+    var n = DATA.network.interfaces[k];
+    html += '<div class="net-row" style="margin-bottom:6px;">'+
+      '<span class="net-if">'+k+'</span>'+
+      '<span class="net-stat"><span class="net-stat-lbl">RX</span><span class="net-stat-val">'+fmtMbps(n.rx_bps)+' Mbps</span></span>'+
+      '<span class="net-stat"><span class="net-stat-lbl">TX</span><span class="net-stat-val">'+fmtMbps(n.tx_bps)+' Mbps</span></span></div>';
+  });
+  document.getElementById('net-body').innerHTML = html;
+})();
+</script>
+
+</body>
+</html>
