@@ -247,7 +247,7 @@ input[type=range]:hover::-webkit-slider-thumb{background:#1a1a1a;}
   <div class="hdr">
     <div style="display:flex;align-items:center;gap:7px;font-size:14px;font-weight:500;">📹 LABY-4K 설정프로그램</div>
     <div style="display:flex;align-items:center;gap:9px;">
-      <a href="laby4k_wizard_v1.html" style="font-size:12px;padding:4px 10px;border:1px solid #93c5fd;border-radius:6px;background:#eff6ff;color:#1d4ed8;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">⚡ 간편설정</a>
+      <a href="javascript:void(0)" onclick="window.open('laby4k_wizard_v1.html','laby4kWizard','width=980,height=800')" style="font-size:12px;padding:4px 10px;border:1px solid #93c5fd;border-radius:6px;background:#eff6ff;color:#1d4ed8;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">⚡ 간편설정</a>
       <button id="identify-btn" onclick="identifyDevice()" style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#555;font-weight:500;cursor:pointer;">🔦 녹화기 확인</button>
       <span style="font-size:12px;color:#888;background:#f5f5f5;padding:3px 9px;border-radius:6px;">● IDLE</span>
       <button style="font-size:12px;padding:4px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;">로그아웃</button>
@@ -296,12 +296,12 @@ input[type=range]:hover::-webkit-slider-thumb{background:#1a1a1a;}
     <div class="main">
       <p class="ptitle">입출력 설정</p>
       <div class="tabs">
-        <div class="tab">CH1</div>
+        <div class="tab" style="cursor:pointer;" onclick="location.href='laby4k_ch1_v13.html'">CH1</div>
         <div class="tab">CH2</div>
         <div class="tab">CH3</div>
         <div class="tab">CH4</div>
         <div class="tab on">Scene</div>
-        <div class="tab">공통</div>
+        <div class="tab" style="cursor:pointer;" onclick="location.href='laby4k_common_v2.html'">공통</div>
       </div>
 
       <!-- 미리보기 -->
@@ -417,34 +417,16 @@ input[type=range]:hover::-webkit-slider-thumb{background:#1a1a1a;}
           <div class="src-sel-row">
             <span class="src-sel-label">Scene 입력 소스</span>
             <select class="src-sel" id="srcSel" onchange="onSrcChange(this.value)">
-              <option value="linein">LineIn</option>
-              <option value="xlrcombo">XLRCombo</option>
-              <option value="usbaudio">USBAudio</option>
+              <option value="ch1hdmi">CH1HDMI</option>
+              <option value="ch1sdi">CH1SDI</option>
+              <option value="ch2hdmi">CH2HDMI</option>
+              <option value="ch3hdmi">CH3HDMI</option>
+              <option value="ch4hdmi">CH4HDMI</option>
               <option value="mixaudio" selected>MixAudio</option>
             </select>
             <span style="font-size:11px;color:#aaa;">선택 즉시 Scene 인코딩 소스 변경</span>
           </div>
-
-          <!-- 소스 구성 -->
-          <div class="src-config" id="srcConfig">
-            <div class="src-config-hd">
-              <span class="src-config-title" id="srcConfigTitle">MixAudio 구성</span>
-              <span id="srcConfigBadge" class="wbdg">전체 채널 적용 · 편집 가능</span>
-            </div>
-            <div class="src-btns" id="srcBtns">
-              <span class="src-btn editable on"    data-src="linein"   onclick="toggleSrc(this)">LineIn</span>
-              <span class="src-btn editable nosig" data-src="xlrcombo" onclick="toggleSrc(this)">XLRCombo</span>
-              <span class="src-btn editable nosig" data-src="usbaudio" onclick="toggleSrc(this)">USBAudio</span>
-              <span class="src-btn editable on"    data-src="ch1hdmi"  onclick="toggleSrc(this)">CH1HDMI</span>
-              <span class="src-btn editable nosig" data-src="ch1sdi"   onclick="toggleSrc(this)">CH1SDI</span>
-              <span class="src-btn editable on"    data-src="ch2hdmi"  onclick="toggleSrc(this)">CH2HDMI</span>
-              <span class="src-btn editable nosig" data-src="ch3hdmi"  onclick="toggleSrc(this)">CH3HDMI</span>
-              <span class="src-btn editable nosig" data-src="ch4hdmi"  onclick="toggleSrc(this)">CH4HDMI</span>
-            </div>
-            <div class="readonly-note" id="readonlyNote" style="display:none;">
-              단일 소스 선택 시 구성 변경 불가 — MixAudio 선택 시 편집 가능합니다
-            </div>
-          </div>
+          <div class="cl" style="margin-top:-6px;">MixAudio 구성(8개 소스 선택)은 "공통" 탭에서 설정합니다.</div>
 
           <!-- 디바이스 테이블 -->
           <table class="audio-tbl">
@@ -458,7 +440,6 @@ input[type=range]:hover::-webkit-slider-thumb{background:#1a1a1a;}
               </tr>
             </thead>
             <tbody>
-              <tr class="sep-row"><td colspan="5">채널 전용 &nbsp;<span class="bdg">각 채널별 적용</span></td></tr>
               <tr id="tr-ch1hdmi">
                 <td><span class="src-name">CH1HDMI</span></td>
                 <td style="text-align:center;"><span class="dot don"></span></td>
@@ -494,28 +475,6 @@ input[type=range]:hover::-webkit-slider-thumb{background:#1a1a1a;}
                 <td><div class="sl-wrap"><input type="range" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">80</span></div></td>
                 <td><div class="sl-wrap"><input type="range" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">80</span></div></td>
               </tr>
-              <tr class="sep-row"><td colspan="5">공통 글로벌 &nbsp;<span class="wbdg">전체 채널 적용</span></td></tr>
-              <tr id="tr-linein">
-                <td><span class="src-name">LineIn</span></td>
-                <td style="text-align:center;"><span class="dot don"></span></td>
-                <td><div class="lv-wrap"><div class="lv-track"><div class="lv-fill" id="lv-linein" style="width:42%;background:#22c55e;"></div></div><span class="lv-val" id="db-linein">-26dB</span></div></td>
-                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">80</span></div></td>
-                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="80" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">80</span></div></td>
-              </tr>
-              <tr id="tr-xlrcombo" class="inactive">
-                <td><span class="src-name">XLRCombo</span></td>
-                <td style="text-align:center;"><span class="dot doff"></span></td>
-                <td><div class="lv-wrap"><div class="lv-track"><div class="lv-fill" style="width:0%;"></div></div><span class="lv-val">—</span></div></td>
-                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="70" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">70</span></div></td>
-                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="70" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">70</span></div></td>
-              </tr>
-              <tr id="tr-usbaudio" class="inactive">
-                <td><span class="src-name">USBAudio</span></td>
-                <td style="text-align:center;"><span class="dot doff"></span></td>
-                <td><div class="lv-wrap"><div class="lv-track"><div class="lv-fill" style="width:0%;"></div></div><span class="lv-val">—</span></div></td>
-                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="60" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">60</span></div></td>
-                <td><div class="sl-wrap"><input type="range" min="0" max="100" value="60" oninput="this.nextElementSibling.textContent=this.value"><span class="sl-val">60</span></div></td>
-              </tr>
               <tr id="tr-mixaudio" class="sel-row">
                 <td><span class="src-name">MixAudio</span></td>
                 <td style="text-align:center;"><span class="dot don"></span></td>
@@ -539,7 +498,6 @@ var meters=[
   {f:'pL',v:'pLv',b:-18},{f:'pR',v:'pRv',b:-20},
   {f:'lv-ch1hdmi',v:'db-ch1hdmi',b:-16},
   {f:'lv-ch2hdmi',v:'db-ch2hdmi',b:-22},
-  {f:'lv-linein',v:'db-linein',b:-26},
   {f:'lv-mixaudio',v:'db-mixaudio',b:-18},
 ];
 var t=0;
@@ -554,28 +512,9 @@ setInterval(function(){
   });
 },100);
 
-var hasSig={linein:true,xlrcombo:false,usbaudio:false,ch1hdmi:true,ch1sdi:false,ch2hdmi:true,ch3hdmi:false,ch4hdmi:false};
-var mixState={linein:true,xlrcombo:false,usbaudio:false,ch1hdmi:true,ch1sdi:false,ch2hdmi:true,ch3hdmi:false,ch4hdmi:false};
-var noSigRows=['ch1sdi','xlrcombo','usbaudio','ch3hdmi','ch4hdmi'];
-var allRows=['ch1hdmi','ch1sdi','ch2hdmi','ch3hdmi','ch4hdmi','linein','xlrcombo','usbaudio','mixaudio'];
-
-// HOST는 오디오 소스가 linein/xlrcombo/usbaudio/mixaudio만
-function renderSrcBtns(val){
-  var isMix=(val==='mixaudio');
-  var onList=isMix?Object.keys(mixState).filter(function(k){return mixState[k];}):[val];
-  document.querySelectorAll('#srcBtns .src-btn').forEach(function(btn){
-    var s=btn.dataset.src;
-    btn.classList.toggle('on', onList.indexOf(s)>=0);
-    btn.classList.toggle('editable', isMix);
-    btn.classList.toggle('readonly', !isMix);
-    btn.classList.toggle('nosig', !hasSig[s]);
-  });
-  document.getElementById('srcConfigTitle').textContent=isMix?'MixAudio 구성':'선택된 소스';
-  var badge=document.getElementById('srcConfigBadge');
-  if(isMix){badge.className='wbdg';badge.textContent='전체 채널 적용 · 편집 가능';}
-  else{badge.className='bdg';badge.textContent='읽기 전용';}
-  document.getElementById('readonlyNote').style.display=isMix?'none':'block';
-}
+var hasSig={ch1hdmi:true,ch1sdi:false,ch2hdmi:true,ch3hdmi:false,ch4hdmi:false,mixaudio:true};
+var noSigRows=['ch1sdi','ch3hdmi','ch4hdmi'];
+var allRows=['ch1hdmi','ch1sdi','ch2hdmi','ch3hdmi','ch4hdmi','mixaudio'];
 
 function updateTable(val){
   allRows.forEach(function(k){
@@ -586,10 +525,8 @@ function updateTable(val){
   });
 }
 
-function onSrcChange(val){renderSrcBtns(val);updateTable(val);}
-function toggleSrc(btn){var s=btn.dataset.src;btn.classList.toggle('on');mixState[s]=btn.classList.contains('on');}
+function onSrcChange(val){updateTable(val);}
 
-renderSrcBtns('mixaudio');
 updateTable('mixaudio');
 function goToSceneMenu(){
   showToast('🎬 씬 메뉴로 이동합니다 (실제 앱에서 씬 탭으로 전환)');

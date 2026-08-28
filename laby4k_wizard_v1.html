@@ -13,13 +13,15 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px
 .wiz-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;border-bottom:1px solid #eee;}
 .wiz-logo{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;}
 .wiz-step-lbl{font-size:11px;color:#aaa;}
+.wiz-close-btn{width:26px;height:26px;border-radius:6px;border:1px solid #ddd;background:#fff;color:#888;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.wiz-close-btn:hover{background:#fef2f2;border-color:#fecaca;color:#ef4444;}
 
-.progress-row{display:flex;padding:0 28px;margin:16px 0 28px;gap:6px;}
+.progress-row{display:flex;max-width:600px;margin:16px auto 28px;padding:0 28px;gap:6px;box-sizing:border-box;}
 .progress-seg{flex:1;height:4px;border-radius:2px;background:#eee;}
 .progress-seg.done{background:#1d4ed8;}
 .progress-seg.current{background:#93c5fd;}
 
-.wiz-body{max-width:520px;margin:0 auto;padding:0 28px 40px;}
+.wiz-body{max-width:600px;margin:0 auto;padding:0 28px 40px;}
 .step-panel{display:none;}
 .step-panel.active{display:block;}
 
@@ -40,8 +42,6 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px
 .sys-btn-primary:hover{background:#1e40af;}
 .sys-btn-ghost{padding:11px 20px;font-size:13px;font-weight:500;border:1px solid #ddd;border-radius:7px;cursor:pointer;background:#fff;color:#555;}
 .sys-btn-ghost:hover{background:#f8f8f8;}
-.link-skip{display:block;margin:12px auto 0;font-size:11.5px;color:#999;background:none;border:none;cursor:pointer;text-decoration:underline;text-align:center;}
-.link-skip:hover{color:#666;}
 
 .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
 .don{background:#22c55e;}.doff{background:#d1d5db;}.derr{background:#ef4444;}
@@ -126,12 +126,27 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px
 .ch-dev-lbl-static{font-size:10.5px;color:#999;font-weight:500;}
 
 /* 채널 카드: 좌(비디오) / 우(오디오) 2열 */
-.ch-two-col{display:flex;gap:16px;align-items:flex-start;}
+.ch-two-col{display:flex;gap:0;align-items:stretch;}
 .ch-col{flex:1;min-width:0;}
+.ch-col-video{padding-right:14px;}
+.ch-col-audio{padding-left:14px;border-left:1.5px solid #eee;}
 .ch-col-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
 .ch-col-body{display:flex;gap:10px;align-items:center;}
+.ch-col-title{font-size:10.5px;font-weight:700;letter-spacing:0.2px;display:inline-flex;align-items:center;gap:4px;}
+.ch-col-title.video{color:#2563eb;}
+.ch-col-title.audio{color:#16a34a;}
 
 /* 오디오 소스 선택 버튼 (MixAudio 구성 + 채널별 오디오 선택 공용) */
+/* 인코딩 프로파일 선택 (encoder_ch1_v6.html 참고) */
+.profile-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.profile-card{border:1.5px solid #eee;border-radius:8px;padding:10px 12px;cursor:pointer;background:#fff;transition:all 0.15s;min-width:0;}
+.profile-card:hover{border-color:#93c5fd;background:#f8fbff;}
+.profile-card.active{border-color:#1d4ed8;background:#eff6ff;}
+.profile-card-name{font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.profile-card-streams{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.profile-card-stream{font-size:10px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.profile-card-stream b{color:#555;font-weight:600;}
+
 .aud-opt-row{display:flex;flex-wrap:wrap;gap:10px 8px;}
 .aud-opt-item{width:84px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;}
 .aud-opt-item .ch-src-tab{width:100%;text-align:center;}
@@ -163,7 +178,10 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px
 <div class="wrap">
   <div class="wiz-hdr">
     <div class="wiz-logo">📹 LABY-4K 간편설정</div>
-    <span class="wiz-step-lbl" id="step-lbl">1 / 7</span>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="wiz-step-lbl" id="step-lbl">1 / 8</span>
+      <button class="wiz-close-btn" onclick="closeWizard()" title="설정 닫기">✕</button>
+    </div>
   </div>
 
   <div class="progress-row" id="progress-row"></div>
@@ -180,8 +198,10 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px
       <div class="sys-lbl" style="margin:16px 0 6px;">시리얼번호</div>
       <div id="serial-step-body"></div>
 
-      <div class="btn-row"><button class="sys-btn-primary" onclick="goStep1Next()">다음</button></div>
-      <button class="link-skip" onclick="skipStep()">건너뛰기</button>
+      <div class="btn-row">
+        <button class="sys-btn-ghost" onclick="skipStep()">건너뛰기</button>
+        <button class="sys-btn-primary" onclick="goStep1Next()">다음</button>
+      </div>
     </div>
 
     <!-- ② 네트워크 확인 (터치모델: 직접 변경 / 비터치모델: 읽기전용+IP Finder 안내) -->
@@ -191,9 +211,9 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px
       <div id="net-step-body"></div>
       <div class="btn-row">
         <button class="sys-btn-ghost" onclick="goStep(1)">이전</button>
+        <button class="sys-btn-ghost" onclick="skipStep()">건너뛰기</button>
         <button class="sys-btn-primary" onclick="goStep2Next()">다음</button>
       </div>
-      <button class="link-skip" onclick="skipStep()">건너뛰기</button>
     </div>
 
     <!-- ③ 날짜/시간 -->
@@ -230,74 +250,66 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px
       </div>
       <div class="btn-row">
         <button class="sys-btn-ghost" onclick="goStep(2)">이전</button>
+        <button class="sys-btn-ghost" onclick="skipStep()">건너뛰기</button>
         <button class="sys-btn-primary" onclick="goStep(4)">다음</button>
       </div>
-      <button class="link-skip" onclick="skipStep()">건너뛰기</button>
     </div>
 
     <!-- ④ 관리자 계정 -->
     <div class="step-panel" id="step-4">
       <div class="step-title">관리자 계정 설정</div>
-      <div class="step-desc">최초 사용 전 관리자 비밀번호를 반드시 설정해야 합니다.</div>
+      <div class="step-desc">기존 관리자 계정 정보를 그대로 사용합니다. 바꾸고 싶을 때만 아래에서 변경하세요.</div>
       <div class="sys-field">
         <span class="sys-lbl">아이디</span>
-        <input type="text" class="sys-inp" value="admin" readonly>
+        <input type="text" class="sys-inp" id="wiz-admin-id-view" value="admin" readonly>
       </div>
-      <div class="sys-field">
-        <span class="sys-lbl">비밀번호</span>
-        <input type="password" class="sys-inp" id="wiz-pw-new" oninput="checkWizPwMatch()">
-        <span class="field-hint">8자 이상, 영문·숫자·특수문자 조합</span>
+
+      <div class="toggle-wrap">
+        <button class="toggle" id="pw-toggle" onclick="togglePwEdit()"></button>
+        <span class="toggle-lbl" id="pw-toggle-lbl">계정 정보 변경</span>
       </div>
-      <div class="sys-field">
-        <span class="sys-lbl">비밀번호 확인</span>
-        <input type="password" class="sys-inp" id="wiz-pw-confirm" oninput="checkWizPwMatch()">
-        <span class="field-err" id="wiz-pw-err">비밀번호가 일치하지 않습니다</span>
+
+      <div id="pw-edit-fields" style="display:none;">
+        <div class="sys-field">
+          <span class="sys-lbl">아이디</span>
+          <input type="text" class="sys-inp" id="wiz-admin-id">
+          <span class="field-hint">영문·숫자, 4자 이상</span>
+        </div>
+        <div class="sys-field">
+          <span class="sys-lbl">새 비밀번호</span>
+          <input type="password" class="sys-inp" id="wiz-pw-new" oninput="checkWizPwMatch()">
+          <span class="field-hint">8자 이상, 영문·숫자·특수문자 조합 (변경 안 하려면 비워두세요)</span>
+        </div>
+        <div class="sys-field">
+          <span class="sys-lbl">새 비밀번호 확인</span>
+          <input type="password" class="sys-inp" id="wiz-pw-confirm" oninput="checkWizPwMatch()">
+          <span class="field-err" id="wiz-pw-err">비밀번호가 일치하지 않습니다</span>
+        </div>
+        <button class="sys-btn-ghost" style="width:100%;margin-bottom:14px;" onclick="useDefaultPassword()">기본 비밀번호 사용</button>
+        <div class="field-hint" style="margin:-10px 0 14px;">현장마다 다른 비밀번호를 쓰면 이후 유지보수가 어렵습니다. 미리 지정된 기본 비밀번호로 설정하려면 위 버튼을 눌러주세요.</div>
       </div>
-      <button class="sys-btn-ghost" style="width:100%;margin-bottom:14px;" onclick="useDefaultPassword()">기본 비밀번호 사용</button>
-      <div class="field-hint" style="margin:-10px 0 14px;">현장마다 다른 비밀번호를 쓰면 이후 유지보수가 어렵습니다. 미리 지정된 기본 비밀번호로 설정하려면 위 버튼을 눌러주세요.</div>
+
       <div class="btn-row">
         <button class="sys-btn-ghost" onclick="goStep(3)">이전</button>
+        <button class="sys-btn-ghost" onclick="skipStep()">건너뛰기</button>
         <button class="sys-btn-primary" onclick="tryStep5()">다음</button>
       </div>
-      <button class="link-skip" onclick="skipStep()">건너뛰기</button>
     </div>
 
-    <!-- ⑤ 저장소 -->
+    <!-- ⑤ 입력 채널 확인 -->
     <div class="step-panel" id="step-5">
-      <div class="step-title">저장소 확인</div>
-      <div class="step-desc">감지된 디스크 정보입니다. 저장소 구성은 자동으로 결정되며, 이 화면에서는 변경할 수 없습니다.</div>
-
-      <div class="disk-card">
-        <div class="disk-hd"><span class="disk-name">nvme0n1</span><span class="disk-state ready">주저장소 · 정상</span></div>
-        <div class="disk-sub">NVMe · 512GB</div>
-      </div>
-
-      <div class="disk-card">
-        <div class="disk-hd"><span class="disk-name">sda</span><span class="disk-state ready">보조저장소 · 정상</span></div>
-        <div class="disk-sub">SATA HDD · 4TB</div>
-      </div>
-
-      <div class="btn-row">
-        <button class="sys-btn-ghost" onclick="goStep(4)">이전</button>
-        <button class="sys-btn-primary" onclick="goStep(6)">다음</button>
-      </div>
-      <button class="link-skip" onclick="skipStep()">건너뛰기</button>
-    </div>
-
-    <!-- ⑥ 입력 채널 확인 -->
-    <div class="step-panel" id="step-6">
       <div class="step-title">입력 채널 확인</div>
       <div class="step-desc" id="ch-check-desc">선택하신 모델의 채널에 실제 영상·오디오 신호가 들어오는지 확인합니다.</div>
       <div id="ch-check-list"></div>
       <div class="btn-row">
-        <button class="sys-btn-ghost" onclick="goStep(5)">이전</button>
-        <button class="sys-btn-primary" onclick="goStep(7)">다음</button>
+        <button class="sys-btn-ghost" onclick="goStep(4)">이전</button>
+        <button class="sys-btn-ghost" onclick="skipStep()">건너뛰기</button>
+        <button class="sys-btn-primary" onclick="goStep(6)">다음</button>
       </div>
-      <button class="link-skip" onclick="skipStep()">건너뛰기</button>
     </div>
 
-    <!-- ⑦ 씬 및 출력 설정 -->
-    <div class="step-panel" id="step-7">
+    <!-- ⑥ 씬 및 출력 설정 -->
+    <div class="step-panel" id="step-6">
       <div class="step-title">씬 및 출력 설정</div>
       <div class="step-desc">Scene(믹스) 출력의 해상도·구성과, 모니터링(HDMI)·LCD(전면) 출력을 설정합니다.</div>
 
@@ -339,7 +351,7 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px
 
       <div class="ch-dev-lbl" style="margin:14px 0 6px;">오디오</div>
       <div class="aud-opt-row" id="scene-audio-row"></div>
-      <div class="field-hint" style="margin-top:6px;">Scene(믹스 출력)의 오디오는 항상 MixAudio입니다. 구성은 이전 단계의 "MixAudio 구성"을 따릅니다.</div>
+      <div class="field-hint" style="margin-top:6px;">MixAudio 선택 시, 구성은 이전 단계의 "MixAudio 구성"을 따릅니다.</div>
 
       <div class="ch-dev-lbl" style="margin:16px 0 8px;">출력</div>
       <div class="sys-field">
@@ -364,10 +376,22 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px
       </div>
 
       <div class="btn-row">
+        <button class="sys-btn-ghost" onclick="goStep(5)">이전</button>
+        <button class="sys-btn-ghost" onclick="skipStep()">건너뛰기</button>
+        <button class="sys-btn-primary" onclick="goStep(7)">다음</button>
+      </div>
+    </div>
+
+    <!-- ⑦ 인코딩 프로파일 -->
+    <div class="step-panel" id="step-7">
+      <div class="step-title">인코딩 프로파일</div>
+      <div class="step-desc">모든 채널에 공통으로 적용할 화질을 선택하세요. 저장 공간·네트워크 사용량에 직접 영향을 줍니다. (세부 조정은 설치 후 "인코딩 및 프로파일" 메뉴에서 가능합니다)</div>
+      <div id="wiz-profile-cards"></div>
+      <div class="btn-row">
         <button class="sys-btn-ghost" onclick="goStep(6)">이전</button>
+        <button class="sys-btn-ghost" onclick="skipStep()">건너뛰기</button>
         <button class="sys-btn-primary" onclick="goStep(8)">다음</button>
       </div>
-      <button class="link-skip" onclick="skipStep()">건너뛰기</button>
     </div>
 
     <!-- ⑧ 완료 -->
@@ -377,10 +401,22 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px
         <div class="step-title" style="margin-bottom:4px;">설정이 완료되었습니다</div>
         <div class="step-desc" style="margin-bottom:0;">아래 설정으로 LABY-4K가 준비되었습니다. 세부 설정은 언제든 대시보드에서 다시 조정할 수 있습니다.</div>
       </div>
+
+      <div class="sys-lbl" style="margin-bottom:6px;">저장소</div>
+      <div class="disk-card">
+        <div class="disk-hd"><span class="disk-name">nvme0n1</span><span class="disk-state ready">주저장소 · 정상</span></div>
+        <div class="disk-sub">NVMe · 512GB</div>
+      </div>
+      <div class="disk-card">
+        <div class="disk-hd"><span class="disk-name">sda</span><span class="disk-state ready">보조저장소 · 정상</span></div>
+        <div class="disk-sub">SATA HDD · 4TB</div>
+      </div>
+
+      <div class="sys-lbl" style="margin:14px 0 6px;">설정 요약</div>
       <div class="summary-list" id="summary-list"></div>
       <div class="btn-row">
         <button class="sys-btn-ghost" onclick="goStep(7)">이전</button>
-        <button class="sys-btn-primary" onclick="showToast('대시보드로 이동 (프로토타입)')">대시보드로 이동</button>
+        <button class="sys-btn-primary" onclick="location.href='laby4k_status_v4.html'">대시보드로 이동</button>
       </div>
     </div>
 
@@ -391,6 +427,11 @@ body{font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:16px
 
 <script>
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(function(){t.style.display='none';},2200);}
+
+function closeWizard(){
+  // 간편설정의 각 항목은 변경 즉시 실시간으로 저장되므로 "저장 여부" 확인 없이 바로 닫음
+  window.close();
+}
 
 // ── 시리얼번호 (1단계에서 표시 + '변경' 버튼으로 등록/수정) ──
 // 랩241 내부 기본설정 메뉴 겸용이므로, 미등록이어도 진행을 막지 않고 1단계에서 바로 등록 가능.
@@ -479,26 +520,8 @@ var NET_FIELDS = [
 var netEditing = false;
 
 function renderNetworkStep(){
-  var m = currentModel();
-  var identifyBlock = '<div style="margin-bottom:10px;">'+
-      '<button class="sys-btn-ghost" id="identify-btn" style="width:100%;" onclick="identifyDevice()">🔦 녹화기 확인 (램프 5초 점등)</button>'+
-      '<div class="field-hint" style="margin-top:4px;">여러 대 중 지금 조작 중인 장비가 어떤 것인지 램프로 확인할 수 있습니다.</div>'+
-    '</div>';
-  if(m.touch){
-    document.getElementById('net-step-desc').textContent = '이 모델은 터치 모니터가 있어 이 화면에서 바로 네트워크를 변경할 수 있습니다.';
-    renderNetworkTouchBody();
-  } else {
-    document.getElementById('net-step-desc').textContent = 'IP Finder 프로그램이 UDP 브로드캐스트로 이미 이 장비의 네트워크를 설정했습니다. 아래 값이 올바른지 확인해주세요.';
-    document.getElementById('net-step-body').innerHTML =
-      '<div class="info-status"><span class="dot don"></span>정상 연결됨</div>'+
-      identifyBlock+
-      '<div class="info-card">'+
-        NET_FIELDS.map(function(f){
-          return '<div class="info-row"><span class="info-lbl">'+f.lbl+'</span><span class="info-val">'+f.val+'</span></div>';
-        }).join('')+
-      '</div>'+
-      '<div class="field-hint" style="margin-top:10px;">IP를 변경해야 한다면 이 화면이 아니라 PC의 <b>IP Finder</b> 프로그램을 다시 실행해주세요.</div>';
-  }
+  document.getElementById('net-step-desc').textContent = '이 화면에서 바로 네트워크를 변경할 수 있습니다. PC의 IP Finder 프로그램으로도 변경 가능합니다.';
+  renderNetworkTouchBody();
 }
 
 function renderNetworkTouchBody(){
@@ -521,7 +544,8 @@ function renderNetworkTouchBody(){
       '<span class="toggle-lbl">직접 변경</span>'+
     '</div>'+
     identifyHtml+
-    '<div class="info-card">'+rowsHtml+'</div>';
+    '<div class="info-card">'+rowsHtml+'</div>'+
+    '<div class="field-hint" style="margin-top:10px;">PC의 <b>IP Finder</b> 프로그램으로도 동일하게 변경할 수 있습니다.</div>';
 
   document.getElementById('net-toggle').addEventListener('click', function(){
     netEditing = !netEditing;
@@ -580,8 +604,9 @@ function goStep(n){
   document.getElementById('step-'+current).classList.add('active');
   renderProgress();
   if(n === 2){ renderNetworkStep(); }
-  if(n === 6){ renderChannelCheck(); }
-  if(n === 7){ renderSceneOutputStep(); }
+  if(n === 5){ renderChannelCheck(); }
+  if(n === 6){ renderSceneOutputStep(); }
+  if(n === 7){ renderWizProfileCards(); }
   if(n === 8){ renderSummary(); }
   window.scrollTo(0,0);
 }
@@ -603,6 +628,18 @@ function toggleNtp(){
 
 // ── ④ 관리자 계정 ──
 var DEFAULT_PASSWORD = "Laby4K#2026";
+var pwEditOn = false;
+var wizAdminId = 'admin';
+var wizAdminIdChanged = false;
+var wizPasswordChanged = false;
+
+function togglePwEdit(){
+  pwEditOn = !pwEditOn;
+  document.getElementById('pw-toggle').classList.toggle('on', pwEditOn);
+  document.getElementById('pw-toggle-lbl').textContent = pwEditOn ? '계정 정보 변경 중' : '계정 정보 변경';
+  document.getElementById('pw-edit-fields').style.display = pwEditOn ? 'block' : 'none';
+  if(pwEditOn){ document.getElementById('wiz-admin-id').value = wizAdminId; }
+}
 function useDefaultPassword(){
   document.getElementById('wiz-pw-new').value = DEFAULT_PASSWORD;
   document.getElementById('wiz-pw-confirm').value = DEFAULT_PASSWORD;
@@ -615,14 +652,57 @@ function checkWizPwMatch(){
   document.getElementById('wiz-pw-err').style.display = (c.length>0 && n!==c) ? 'block' : 'none';
 }
 function tryStep5(){
+  if(!pwEditOn){ goStep(5); return; } // 변경 안 함 → 기존 아이디·비밀번호 그대로 유지, 검증 불필요
+
+  var idVal = document.getElementById('wiz-admin-id').value.trim();
+  if(idVal.length < 4){ showToast('아이디는 4자 이상이어야 합니다'); return; }
+
   var n = document.getElementById('wiz-pw-new').value;
   var c = document.getElementById('wiz-pw-confirm').value;
-  if(n.length < 8){ showToast('비밀번호는 8자 이상이어야 합니다'); return; }
-  if(n !== c){ showToast('비밀번호가 일치하지 않습니다'); return; }
+  // 비밀번호 칸을 비워두면 아이디만 변경하고 비밀번호는 그대로 유지
+  if(n.length > 0 || c.length > 0){
+    if(n.length < 8){ showToast('비밀번호는 8자 이상이어야 합니다'); return; }
+    if(n !== c){ showToast('비밀번호가 일치하지 않습니다'); return; }
+    wizPasswordChanged = true;
+  }
+
+  if(idVal !== wizAdminId){
+    wizAdminId = idVal;
+    wizAdminIdChanged = true;
+    document.getElementById('wiz-admin-id-view').value = wizAdminId;
+  }
   goStep(5);
 }
 
 // ── ⑥ 입력 채널 확인 (모델별 동적) ──
+
+// 인코딩 프로파일 (encoder_ch1_v6.html과 동일 데이터, 전체 채널 공통 1개 선택)
+var WIZ_PROFILES = {
+  uhd_fhd: { name:'초고화질 (UHD/FHD)', streams:{ main:'FHD · H.265 · 25Mbps · 60fps', sub:'UHD · H.265 · 50Mbps · 30fps', prev:'HD · H.264 · 2Mbps · 30fps' } },
+  fhd_hd:  { name:'인터넷서비스용 (FHD/HD)', streams:{ main:'FHD · H.264 · 12Mbps · 30fps', sub:'HD · H.264 · 4Mbps · 30fps', prev:'HD · H.264 · 2Mbps · 30fps' } },
+  temp_fhd:{ name:'임시서비스용 (FHD/HD)', streams:{ main:'FHD · H.264 · 8Mbps · 30fps', sub:'HD · H.264 · 2Mbps · 30fps', prev:'480p · H.264 · 1Mbps · 15fps' } },
+  custom:  { name:'커스텀', streams:{ main:'FHD · H.264 · 10Mbps · 30fps', sub:'HD · H.264 · 4Mbps · 30fps', prev:'HD · H.264 · 2Mbps · 30fps' } }
+};
+var wizProfileChoice = 'fhd_hd';
+function selectWizProfile(key){
+  wizProfileChoice = key;
+  renderWizProfileCards();
+}
+function renderWizProfileCards(){
+  var cards = Object.keys(WIZ_PROFILES).map(function(key){
+    var p = WIZ_PROFILES[key];
+    var isOn = wizProfileChoice === key;
+    var streamLines = ['main','sub','prev'].map(function(t){
+      return '<div class="profile-card-stream"><b>'+t+'</b> '+p.streams[t]+'</div>';
+    }).join('');
+    return '<div class="profile-card'+(isOn?' active':'')+'" onclick="selectWizProfile(\''+key+'\')">'+
+      '<div class="profile-card-name">'+p.name+'</div>'+
+      '<div class="profile-card-streams">'+streamLines+'</div>'+
+    '</div>';
+  }).join('');
+  document.getElementById('wiz-profile-cards').innerHTML = '<div class="profile-cards">'+cards+'</div>';
+}
+
 // 채널별 물리 입력 (영상+임베디드 오디오는 같은 커넥터를 공유 - CH1만 HDMI/SDI 선택 가능)
 var CHANNEL_SIGNALS = {
   ch1: { hdmi: {signal:true,  width:1920, height:1080, fps:30}, sdi: {signal:false, width:null, height:null, fps:null} },
@@ -741,13 +821,13 @@ function channelCardHtml(c){
     : '<div class="ch-check-sig"><span class="dot doff"></span>무신호</div>';
 
   var videoBlock = '<div class="ch-col ch-col-video">'+
-      '<div class="ch-col-hd"><span class="ch-dev-lbl">비디오</span>'+videoTabsHtml+'</div>'+
+      '<div class="ch-col-hd"><span class="ch-col-title video">🎥 비디오</span>'+videoTabsHtml+'</div>'+
       '<div class="ch-col-body">'+previewHtml+'<div>'+videoInfoLine+'</div></div>'+
     '</div>';
 
   var embeddedKey = c + videoSourceKey; // ch1hdmi/ch1sdi/ch2hdmi/ch3hdmi/ch4hdmi
   var audioBlock = '<div class="ch-col ch-col-audio">'+
-      '<div class="ch-col-hd"><span class="ch-dev-lbl">오디오</span></div>'+
+      '<div class="ch-col-hd"><span class="ch-col-title audio">🔊 오디오</span></div>'+
       '<div class="aud-opt-row">'+
         audioBadgeHtml(embeddedKey, true, ' onclick="selectChannelAudioMode(\''+c+'\',\'embedded\')"', mode!=='mixaudio', videoSourceKey.toUpperCase())+
         mixAudioBadgeHtml(true, ' onclick="selectChannelAudioMode(\''+c+'\',\'mixaudio\')"', mode==='mixaudio')+
@@ -772,6 +852,13 @@ function renderChannelCheck(){
 var sceneOutputState = { resolution:'3840x2160', preset:'VMX_014', monitoring:'ch1', lcd:'chhost' };
 var sceneOutputInit = false;
 
+var SCENE_AUDIO_OPTIONS = ['ch1hdmi','ch1sdi','ch2hdmi','ch3hdmi','ch4hdmi','mixaudio'];
+var sceneAudioChoice = 'mixaudio';
+function selectSceneAudio(key){
+  sceneAudioChoice = key;
+  renderSceneOutputStep();
+}
+
 function renderSceneOutputStep(){
   if(!sceneOutputInit){
     document.getElementById('scene-resolution').value = sceneOutputState.resolution;
@@ -791,7 +878,15 @@ function renderSceneOutputStep(){
     });
     sceneOutputInit = true;
   }
-  document.getElementById('scene-audio-row').innerHTML = mixAudioBadgeHtml(false, '', true);
+  var items = SCENE_AUDIO_OPTIONS.map(function(key){
+    var isOn = sceneAudioChoice === key;
+    var onClickAttr = ' onclick="selectSceneAudio(\''+key+'\')"';
+    if(key === 'mixaudio'){
+      return mixAudioBadgeHtml(true, onClickAttr, isOn);
+    }
+    return audioBadgeHtml(key, true, onClickAttr, isOn);
+  }).join('');
+  document.getElementById('scene-audio-row').innerHTML = items;
 }
 
 
@@ -805,11 +900,13 @@ function renderSummary(){
     { lbl:'제품 모델', val: model.name },
     { lbl:'네트워크', val: '192.168.0.100' },
     { lbl:'날짜/시간', val: ntpOn ? 'NTP 자동 동기화' : '수동 설정' },
-    { lbl:'관리자 계정', val: 'admin (비밀번호 설정됨)' },
+    { lbl:'관리자 계정', val: wizAdminId+' (아이디 '+(wizAdminIdChanged?'변경됨':'유지')+' · 비밀번호 '+(wizPasswordChanged?'변경됨':'유지')+')' },
     { lbl:'주저장소', val: 'nvme0n1 (자동 지정)' },
     { lbl:'입력 채널', val: chListText(model)+' (CH1 비디오: '+ch1Source.toUpperCase()+')' },
     { lbl:'CH1 오디오', val: ch1AudioLabel },
+    { lbl:'인코딩 프로파일', val: WIZ_PROFILES[wizProfileChoice].name },
     { lbl:'씬', val: sceneOutputState.preset+' · '+sceneOutputState.resolution },
+    { lbl:'씬 오디오', val: sceneAudioChoice==='mixaudio' ? 'MixAudio' : AUDIO_SOURCE_INFO[sceneAudioChoice].label },
     { lbl:'출력', val: '모니터링 '+CH_LABEL[sceneOutputState.monitoring]+' · LCD '+CH_LABEL[sceneOutputState.lcd] }
   ];
   document.getElementById('summary-list').innerHTML = rows.map(function(r){
